@@ -4,7 +4,8 @@ from pathlib import Path
 from dupes.image_folder import ImageFolder
 
 
-class Findable(meta=ABCMeta):
+class Findable(metaclass=ABCMeta):
+
     @abstractmethod
     def _find_duplicates_for_single_folder(self, image_folder: ImageFolder):
         raise NotImplementedError
@@ -22,3 +23,15 @@ class Findable(meta=ABCMeta):
             raise ValueError("No image folders were given. Please provide one or two folders.")
         else:
             raise ValueError("Too many image folders were given. Please provide one or two folders.")
+
+
+class FindableImpl(Findable):
+    def _find_duplicates_for_single_folder(self, image_folder: ImageFolder):
+        pass
+
+    def _find_duplicates_for_two_folders(self, first_image_folder: ImageFolder, second_image_folder: ImageFolder):
+        pass
+
+
+if __name__ == '__main__':
+    finder = FindableImpl()
