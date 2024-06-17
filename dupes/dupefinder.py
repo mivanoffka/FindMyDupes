@@ -8,12 +8,24 @@ class DupeFinder(metaclass=ABCMeta):
     _image_folders: tuple[ImageFolder]
 
     @property
+    @abstractmethod
+    def progress(self) -> float:
+        raise NotImplementedError
+
+    @property
     def image_folders(self) -> tuple[ImageFolder]:
         return self._image_folders
-
-    def __init__(self, *image_folders: ImageFolder):
-        self._image_folders = (*image_folders, )
 
     @abstractmethod
     def start_searching(self):
         raise NotImplementedError
+
+    @abstractmethod
+    def _initialize_progress_units(self):
+        raise NotImplementedError
+
+    def __init__(self, *image_folders: ImageFolder):
+        self._image_folders = (*image_folders, )
+        self._initialize_progress_units()
+
+

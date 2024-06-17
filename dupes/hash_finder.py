@@ -56,6 +56,15 @@ class HashDupeFinder(DupeFinder):
         hashmap_sorted = self._sort_hashmap(hashmap_unsorted)
         groups = self._group_paths_by_hashes(hashmap_sorted)
 
+        return groups
+
+    def _initialize_progress_units(self):
+        ...
+
+    @property
+    def progress(self) -> float:
+        return 0
+
 
 if __name__ == "__main__":
     image_folder = ImageFolder("/Users/mivanoffka/Pictures/Datasets/flower_images/LillyS")

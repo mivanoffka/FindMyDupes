@@ -6,17 +6,28 @@ def start():
         print("Folder path:   ", end="")
         path_str = input()
 
-        hash_finder = HashDupeFinder()
-        groups = hash_finder.start_searching(ImageFolder(path_str))
+        finder = HashDupeFinder(ImageFolder(path_str))
+        groups = finder.start_searching()
 
         if len(groups) > 0:
-            print(f"A total of {len(groups)} duplicate groups found.")
+            print(f"\nA total of {len(groups)} duplicate groups found.")
             for i, group in enumerate(groups):
-                print(f"   ({i+1})")
+                files_str = "   "
                 for path in group:
-                    print(f"      {path}")
+                    files_str += path.name + ", "
+                if len(files_str) > 2:
+                    files_str = files_str[:-2]
+                print(f"   [{i+1}] {files_str}")
         else:
             print(f"No duplicates found")
+
+        print("\nDo you wish to continue? (Y/n)")
+
+        should_continue = input()
+
+        if should_continue.lower() != "y":
+            print("\nGoodbye!")
+            break
 
 
 if __name__ == "__main__":

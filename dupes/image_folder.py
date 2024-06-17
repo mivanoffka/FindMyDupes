@@ -4,7 +4,7 @@ from typing import Optional, Iterable
 
 class ImageFolder:
     _folder_path: str
-    _allowed_file_formats: tuple[str] = ["*.jpg", "*.jpeg"]
+    _allowed_file_formats: tuple[str] = ["*.jpg", "*.jpeg", "*.png"]
     _file_formats_filter = Optional[list[str]]
 
     @property
@@ -39,11 +39,4 @@ class ImageFolder:
     def __init__(self, folder_path: str, file_formats_filter: Optional[Iterable[str]] = None):
         self._folder_path = folder_path
         self._file_formats_filter = file_formats_filter
-
-
-if __name__ == "__main__":
-    img_folder = ImageFolder("/Users/mivanoffka/Pictures/df_test/1")
-    print(img_folder.selected_file_formats)
-    print(img_folder.folder_path)
-    print(img_folder.file_paths)
 
