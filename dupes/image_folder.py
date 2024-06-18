@@ -12,6 +12,14 @@ class ImageFolder:
         return self._folder_path
 
     @property
+    def file_formats_filter(self) -> Optional[list[str]]:
+        return self._file_formats_filter
+
+    @file_formats_filter.setter
+    def file_formats_filter(self, value):
+        self._file_formats_filter = value
+
+    @property
     def selected_file_formats(self) -> tuple[str]:
         selected_file_formats = []
         if self._file_formats_filter is None:

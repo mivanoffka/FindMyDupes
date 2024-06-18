@@ -23,7 +23,6 @@ def start():
             print(f"{round(finder.progress * 100, 3)}%")
             time.sleep(1)
 
-
         groups = copy.copy(result)
         result = None
 
@@ -52,6 +51,7 @@ def start():
 def search(finder: DupeFinder):
     global result
     result = finder.start_searching()
+
 
 if __name__ == "__main__":
     start()
