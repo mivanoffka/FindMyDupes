@@ -36,6 +36,10 @@ class ImageFolder:
 
         return tuple(file_paths)
 
+    @property
+    def files_count(self) -> int:
+        return len(self.file_paths)
+
     def __init__(self, folder_path: str, file_formats_filter: Optional[Iterable[str]] = None):
         self._folder_path = folder_path
         self._file_formats_filter = file_formats_filter

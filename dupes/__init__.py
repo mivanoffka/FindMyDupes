@@ -1,3 +1,4 @@
-from dupes.hash_finder import HashDupeFinder
-from dupes.dupefinder import DupeFinder
-from dupes.image_folder import ImageFolder
+from .hash_finder import DupeFinderByHash
+from .phashfinder import DupeFinderByPhash
+from .dupefinder import DupeFinder
+from .image_folder import ImageFolder

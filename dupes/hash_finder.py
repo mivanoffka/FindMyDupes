@@ -6,13 +6,28 @@ from imagehash import ImageHash, phash
 from dupes.image_folder import ImageFolder
 from dupes.dupefinder import DupeFinder
 
+from abc import ABCMeta, abstractmethod
 
-class HashDupeFinder(DupeFinder):
+from dupes.progress_tracker import ProgressTracker
+
+
+class DupeFinderByHash(DupeFinder):
+    __progress_tracker: ProgressTracker
+
+    __hashing_progress_delta: float
+    __grouping_progress_delta: float
+    __sorting_progress_delta: float
+
+    @abstractmethod
+    def _hash(self, image: Image):
+        raise NotImplementedError
 
     def _get_hashmap(self, folder) -> dict[Path, ImageHash]:
         hashmap = {}
+
         for path in folder.file_paths:
-            hashmap[path] = phash(Image.open(path))
+            hashmap[path] = self._hash(Image.open(path))
+            self.__progress_tracker.current_value += self.__hashing_progress_delta
 
         return hashmap
 
@@ -49,24 +64,40 @@ class HashDupeFinder(DupeFinder):
                     groups.append(current_group)
                     current_group = []
 
+            self.__progress_tracker.current_value += self.__grouping_progress_delta
+
         return groups
 
     def start_searching(self):
         hashmap_unsorted = self._get_hashmap(self._image_folders[0])
+
         hashmap_sorted = self._sort_hashmap(hashmap_unsorted)
+        self.__progress_tracker.current_value += self.__sorting_progress_delta
+
         groups = self._group_paths_by_hashes(hashmap_sorted)
 
         return groups
 
     def _initialize_progress_units(self):
-        ...
+        hashing_component = sum(folder.files_count for folder in self._image_folders)
+        self.__hashing_progress_delta = 1
+
+        grouping_component = hashing_component / 25
+        self.__grouping_progress_delta = 1 / 25
+
+        sorting_component = hashing_component / 8
+        self.__sorting_progress_delta = sorting_component
+
+        aim_value = hashing_component + grouping_component + sorting_component
+
+        self.__progress_tracker = ProgressTracker(aim_value)
 
     @property
     def progress(self) -> float:
-        return 0
+        return self.__progress_tracker.percentage
 
 
 if __name__ == "__main__":
     image_folder = ImageFolder("/Users/mivanoffka/Pictures/Datasets/flower_images/LillyS")
-    phash_finder = HashDupeFinder(image_folder)
+    phash_finder = DupeFinderByHash(image_folder)
     phash_finder.start_searching()
