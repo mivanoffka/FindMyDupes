@@ -2,10 +2,13 @@ from pathlib import Path
 from typing import Optional, Iterable
 
 
+ALLOWED_FILE_FORMATS: tuple = ("*.jpg", "*.png", "*.bmp", "*.tiff", "*.gif", "*.ico")
+
+
 class ImageFolder:
     _folder_path: str
-    _allowed_file_formats: tuple[str] = ["*.jpg", "*.jpeg", "*.png"]
     _file_formats_filter = Optional[list[str]]
+
 
     @property
     def folder_path(self):
@@ -23,15 +26,15 @@ class ImageFolder:
     def selected_file_formats(self) -> tuple[str]:
         selected_file_formats = []
         if self._file_formats_filter is None:
-            selected_file_formats = self._allowed_file_formats
+            selected_file_formats = ALLOWED_FILE_FORMATS
         else:
             for file_format in self._file_formats_filter:
-                if file_format in self._allowed_file_formats:
+                if file_format in ALLOWED_FILE_FORMATS:
                     selected_file_formats.append(file_format)
 
                 else:
                     raise AttributeError(f"Invalid file format '{file_format}'."
-                                         f" Valid formats are: {self._allowed_file_formats}")
+                                         f" Valid formats are: {ALLOWED_FILE_FORMATS}")
 
         return tuple(selected_file_formats)
 
