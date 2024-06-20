@@ -14,8 +14,6 @@ class ProgressTracker:
     def percentage(self):
         return self.current_value / self.aim_value
 
-    calls = 0
-
     @current_value.setter
     def current_value(self, value: float):
         if 0 <= value <= self.__aim_value:
@@ -26,8 +24,8 @@ class ProgressTracker:
             self.__current_value = self.__aim_value
 
     def __set_aim_value(self, aim_value: float):
-        if aim_value < 0:
-            raise ValueError("Aim value must be greater than or equal to zero")
+        if aim_value <= 0:
+            raise ValueError("Aim value must be greater than zer0")
 
         self.__aim_value = aim_value
 

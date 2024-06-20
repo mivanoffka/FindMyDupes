@@ -1,9 +1,10 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
-from dupes import DupeFinder, DupeFinderByPhash
+from dupes import DupeFinder, DupeFinderByPhash, EmptyFoldersError, NoFormatsProvided
 from dupes.image_folder import ALLOWED_FILE_FORMATS, ImageFolder
 from searching_window import SearchingWindow
+from utilities import display_error_message
 
 
 class MainWindow(QMainWindow):
@@ -102,17 +103,30 @@ class MainWindow(QMainWindow):
         self.update_folders_list()
 
     def __on_search_button_clicked(self):
-        image_folders = []
-        for path in self.__folders_paths:
-            image_folders.append(ImageFolder(path))
+        try:
+            formats_filter = self.__get_formats_filter()
 
-        finder = DupeFinderByPhash(*image_folders)
+            image_folders = []
+            for path in self.__folders_paths:
+                image_folders.append(ImageFolder(path, formats_filter))
 
-        self.__searching_window = SearchingWindow(finder)
-        self.__searching_window.show()
+            finder = DupeFinderByPhash(*image_folders)
+            self.__searching_window = SearchingWindow(finder)
+            self.__searching_window.show()
+        except EmptyFoldersError as error:
+            display_error_message("В указанных папках не удалось найти ни одного файла,"
+                                  " который бы соответствовал выбранным форматам."
+                                  " \r\n\r\nЧтобы осуществить поиск дубликатов, файлов должно быть хотя бы два.")
+        except NoFormatsProvided as error:
+            display_error_message("Пожалуйста, выберите хотя бы один тип файла.")
 
     def __get_formats_filter(self):
-        return (key for key, value in self.__formats_check_boxes.items() if value.isChecked())
+        formats = [key for key, value in self.__formats_check_boxes.items() if value.isChecked()]
+        if len(formats) > 0:
+            return formats
+        else:
+            raise NoFormatsProvided("Please select at least one file format")
+
 
     def __on_folders_list_item_changed(self):
         self.__remove_button.setEnabled(len(self.__folders_list.selectedItems()) > 0)

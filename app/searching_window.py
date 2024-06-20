@@ -6,12 +6,15 @@ from PyQt6.QtWidgets import *
 
 from PySide6.QtCore import Signal, QThread, QObject
 
-from dupes import DupeFinder
+from utilities import display_error_message, display_detailed_error_message
+from dupes import DupeFinder, NoValidImagesError, EmptyFoldersError
 import time
 
 
 class SearchWorker(QObject):
     finished = Signal()
+    failed = Signal(str)
+    failed_unknown = Signal(str, Exception)
     result = None
 
     def __init__(self, finder: DupeFinder):
@@ -19,7 +22,13 @@ class SearchWorker(QObject):
         self.finder = finder
 
     def run(self):
-        self.result = self.finder.search()
+        try:
+            self.result = self.finder.search()
+        except NoValidImagesError as error:
+            self.failed.emit("Ни один файл не удалось открыть и/или обработать")
+        except Exception as error:
+            self.failed_unknown.emit("Неизвестная ошибка", error)
+
         self.finished.emit()
 
 
@@ -75,6 +84,10 @@ class SearchingWindow(QWidget):
         self.search_worker.finished.connect(self.search_thread.quit)
         self.search_worker.finished.connect(self.search_worker.deleteLater)
         self.search_thread.finished.connect(self.search_thread.deleteLater)
+        self.search_worker.failed.connect(display_error_message)
+        self.search_worker.failed_unknown.connect(display_detailed_error_message)
+
+
 
         self.progress_thread = QThread()
         self.progress_worker = ProgressWorker(self.search_worker)
@@ -90,6 +103,7 @@ class SearchingWindow(QWidget):
 
         self.search_thread.start()
         self.progress_thread.start()
+
 
     def update_progress(self, percentage):
         self.__percentage_label.setText(f"{percentage}%")
