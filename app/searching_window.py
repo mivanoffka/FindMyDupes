@@ -19,14 +19,13 @@ class SearchWorker(QObject):
         self.finder = finder
 
     def run(self):
-        self.result = self.finder.start_searching()
+        self.result = self.finder.search()
         self.finished.emit()
-        print("Done!")
 
 
 class ProgressWorker(QObject):
     progress = Signal(float)
-    finished = Signal()
+    finished = Signal(int)
 
     def __init__(self, search_worker: SearchWorker):
         super().__init__()
@@ -37,7 +36,8 @@ class ProgressWorker(QObject):
             percentage = round(self.search_worker.finder.progress * 100, 1)
             self.progress.emit(percentage)
             time.sleep(0.1)
-        self.finished.emit()
+
+        self.finished.emit(len(self.search_worker.result))
 
 
 class SearchingWindow(QWidget):
@@ -85,12 +85,16 @@ class SearchingWindow(QWidget):
         self.progress_worker.finished.connect(self.progress_worker.deleteLater)
         self.progress_thread.finished.connect(self.progress_thread.deleteLater)
         self.progress_worker.progress.connect(self.update_progress)
-        self.progress_worker.finished.connect(lambda: self.update_progress(100))
+        #self.progress_worker.finished.connect(lambda: self.update_progress(100))
+        self.progress_worker.finished.connect(self.display_result)
 
         self.search_thread.start()
         self.progress_thread.start()
 
-
     def update_progress(self, percentage):
         self.__percentage_label.setText(f"{percentage}%")
         self.__progress_bar.setValue(int(percentage))
+
+    def display_result(self, result):
+        self.__percentage_label.setText(f"Найдено {result} групп дубликатов")
+        self.__progress_bar.setValue(100)

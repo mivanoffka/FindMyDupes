@@ -50,7 +50,7 @@ def start():
 
 def search(finder: DupeFinder):
     global result
-    result = finder.start_searching()
+    result = finder.search()
 
 
 if __name__ == "__main__":

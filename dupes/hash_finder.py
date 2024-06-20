@@ -68,8 +68,15 @@ class DupeFinderByHash(DupeFinder):
 
         return groups
 
-    def start_searching(self):
-        hashmap_unsorted = self._get_hashmap(self._image_folders[0])
+    def search(self):
+        hashmaps = []
+        for folder in self._image_folders:
+            hashmaps.append(self._get_hashmap(folder))
+
+        hashmap_unsorted = {}
+        for hashmap in hashmaps:
+            for key in hashmap.keys():
+                hashmap_unsorted[key] = hashmap[key]
 
         hashmap_sorted = self._sort_hashmap(hashmap_unsorted)
         self.__progress_tracker.current_value += self.__sorting_progress_delta
@@ -100,4 +107,4 @@ class DupeFinderByHash(DupeFinder):
 if __name__ == "__main__":
     image_folder = ImageFolder("/Users/mivanoffka/Pictures/Datasets/flower_images/LillyS")
     phash_finder = DupeFinderByHash(image_folder)
-    phash_finder.start_searching()
+    phash_finder.search()

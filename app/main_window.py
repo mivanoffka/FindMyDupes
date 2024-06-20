@@ -62,8 +62,8 @@ class MainWindow(QMainWindow):
         self.__buttons_layout.setSpacing(6)
         self.__remove_button.setEnabled(False)
 
-        self.__buttons_layout.addWidget(self.__add_button, 2)
-        self.__buttons_layout.addWidget(self.__remove_button)
+        self.__buttons_layout.addWidget(self.__add_button, 3)
+        self.__buttons_layout.addWidget(self.__remove_button, 2)
         self.__folders_group_box_layout.addLayout(self.__buttons_layout)
 
     def __init_formats_group_box(self):
@@ -102,19 +102,14 @@ class MainWindow(QMainWindow):
         self.update_folders_list()
 
     def __on_search_button_clicked(self):
-        path = self.__folders_paths[0]
-        image_folder = ImageFolder(path)
-        finder = DupeFinderByPhash(image_folder)
+        image_folders = []
+        for path in self.__folders_paths:
+            image_folders.append(ImageFolder(path))
+
+        finder = DupeFinderByPhash(*image_folders)
 
         self.__searching_window = SearchingWindow(finder)
         self.__searching_window.show()
-
-        # msgBox = QMessageBox()
-        # msgBox.setIcon(QMessageBox.Icon.Warning)
-        # msgBox.setText("Когда-нибудь эта кнопка будет что-то делать")
-        # msgBox.setWindowTitle("Упс...")
-        # msgBox.exec()
-
 
     def __get_formats_filter(self):
         return (key for key, value in self.__formats_check_boxes.items() if value.isChecked())

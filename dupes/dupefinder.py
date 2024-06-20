@@ -17,7 +17,7 @@ class DupeFinder(metaclass=ABCMeta):
         return self._image_folders
 
     @abstractmethod
-    def start_searching(self):
+    def search(self):
         raise NotImplementedError
 
     @abstractmethod
