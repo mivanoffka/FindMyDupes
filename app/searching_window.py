@@ -4,32 +4,62 @@ from typing import Optional
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import *
 
+from PySide6.QtCore import Signal, QThread, QObject
+
 from dupes import DupeFinder
 import time
+
+
+class SearchWorker(QObject):
+    finished = Signal()
+    result = None
+
+    def __init__(self, finder: DupeFinder):
+        super().__init__()
+        self.finder = finder
+
+    def run(self):
+        self.result = self.finder.start_searching()
+        self.finished.emit()
+        print("Done!")
+
+
+class ProgressWorker(QObject):
+    progress = Signal(float)
+    finished = Signal()
+
+    def __init__(self, search_worker: SearchWorker):
+        super().__init__()
+        self.search_worker = search_worker
+
+    def run(self):
+        while self.search_worker.result is None:
+            percentage = round(self.search_worker.finder.progress * 100, 1)
+            self.progress.emit(percentage)
+            time.sleep(0.1)
+        self.finished.emit()
 
 
 class SearchingWindow(QWidget):
     __dupe_finder: DupeFinder
     __finding_result: Optional[list] = None
 
-    def __init_widgets(self):
-        self.__main_layout = QVBoxLayout()
-        self.__progress_bar = QProgressBar()
-        self.__progress_bar.setRange(0, 100)
-        self.__percentage_label = QLabel("0%")
-
     def __init__(self, dupe_finder: DupeFinder):
         super().__init__()
 
         self.__dupe_finder = dupe_finder
 
-        self.__init_widgets()
-
+        self.__main_layout = QVBoxLayout()
         self.__main_layout.setSpacing(8)
         self.setLayout(self.__main_layout)
+
+        self.__progress_bar = QProgressBar()
+        self.__progress_bar.setRange(0, 100)
+        self.__percentage_label = QLabel("0%")
+        self.__percentage_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+
         self.__main_layout.addWidget(self.__progress_bar)
         self.__main_layout.addWidget(self.__percentage_label)
-        self.__percentage_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
         self.setWindowTitle("Выполняется поиск...")
         self.setFixedSize(400, 75)
@@ -37,27 +67,30 @@ class SearchingWindow(QWidget):
         self.__launch_finder()
 
     def __launch_finder(self):
-        threading.Thread(target=self.__progress_thread).start()
-        threading.Thread(target=self.__searching_thread).start()
+        self.search_thread = QThread()
+        self.search_worker = SearchWorker(self.__dupe_finder)
+        self.search_worker.moveToThread(self.search_thread)
 
-    def __progress_thread(self):
-        while self.__finding_result is None:
-            percentage = round(self.__dupe_finder.progress * 100, 1)
-            self.__percentage_label.setText(f"{percentage}%")
-            self.__progress_bar.setValue(int(percentage))
-            time.sleep(0.1)
+        self.search_thread.started.connect(self.search_worker.run)
+        self.search_worker.finished.connect(self.search_thread.quit)
+        self.search_worker.finished.connect(self.search_worker.deleteLater)
+        self.search_thread.finished.connect(self.search_thread.deleteLater)
 
-        percentage = round(self.__dupe_finder.progress * 100, 1)
+        self.progress_thread = QThread()
+        self.progress_worker = ProgressWorker(self.search_worker)
+        self.progress_worker.moveToThread(self.progress_thread)
+
+        self.progress_thread.started.connect(self.progress_worker.run)
+        self.progress_worker.finished.connect(self.progress_thread.quit)
+        self.progress_worker.finished.connect(self.progress_worker.deleteLater)
+        self.progress_thread.finished.connect(self.progress_thread.deleteLater)
+        self.progress_worker.progress.connect(self.update_progress)
+        self.progress_worker.finished.connect(lambda: self.update_progress(100))
+
+        self.search_thread.start()
+        self.progress_thread.start()
+
+
+    def update_progress(self, percentage):
         self.__percentage_label.setText(f"{percentage}%")
         self.__progress_bar.setValue(int(percentage))
-
-    def __searching_thread(self):
-        self.__finding_result = self.__dupe_finder.start_searching()
-
-        # count = len(self.__finding_result)
-        # msgBox = QMessageBox()
-        # msgBox.setIcon(QMessageBox.Icon.Warning)
-        # msgBox.setText(f"Найдено {count} групп дубликатов.")
-        # msgBox.setWindowTitle("Готово!")
-        # msgBox.exec()
-
