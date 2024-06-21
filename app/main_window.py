@@ -1,4 +1,6 @@
 import time
+import platform
+import getpass
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
@@ -11,13 +13,25 @@ from utilities import display_message
 
 class MainWindow(QMainWindow):
     __folders_paths: list[str]
+    __os = platform.system()
+    __username = getpass.getuser()
+
+    DEFAULT_PICTURES_PATHS = {
+        "Darwin": "Users/{}/Pictures"
+    }
+
+    @property
+    def default_pictures_path(self):
+        return self.DEFAULT_PICTURES_PATHS[self.__os].format(self.__username)
+
 
     def __init__(self):
         super().__init__()
         self.__folders_paths = []
 
+
         self.setWindowTitle("Find my dupes")
-        self.setFixedSize(525, 275)
+        self.setFixedSize(525, 325)
 
         self.__init_widgets()
         self.__init_folders_group_box()
@@ -26,20 +40,52 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.__main_widget)
 
-        self.__main_layout.setSpacing(8)
+        self.__main_layout.setSpacing(0)
         self.__main_widget.setLayout(self.__main_layout)
         self.__main_layout.addLayout(self.__group_boxes_layout)
+
+        self.__options_group_boxes_layout = QHBoxLayout()
+        self.__main_layout.addLayout(self.__options_group_boxes_layout)
+
+        self.__method_group_box = QGroupBox("Метод поиска")
+        self.__options_group_boxes_layout.addWidget(self.__method_group_box, 2)
+        self.__options_group_boxes_layout.setSpacing(8)
+        self.__method_group_box_layout = QVBoxLayout()
+        self.__method_group_box.setLayout(self.__method_group_box_layout)
+        self.__method_combo_box = QComboBox()
+        self.__method_combo_box.addItem("Хеширование")
+        #self.__method_combo_box.addItem("Нейросеть")
+        self.__method_group_box_layout.addWidget(self.__method_combo_box)
+
+        self.__precision_group_box = QGroupBox("Процент схожести изображений")
+        self.__options_group_boxes_layout.addWidget(self.__precision_group_box, 3)
+        self.__precision_group_box_layout = QHBoxLayout()
+        self.__precision_group_box_layout.setSpacing(12)
+        self.__precision_group_box.setLayout(self.__precision_group_box_layout)
+        self.__precision_label = QLabel("90%")
+        self.__precision_group_box_layout.addWidget(self.__precision_label)
+
+        self.__precision_slider = QSlider(Qt.Orientation.Horizontal)
+        self.__precision_slider.setMinimum(0)
+        self.__precision_slider.setMaximum(100)
+        self.__precision_slider.setValue(90)
+        self.__precision_slider.valueChanged.connect(
+            lambda: self.__precision_label.setText(f"{self.__precision_slider.value()}%")
+        )
+        self.__precision_group_box_layout.addWidget(self.__precision_slider)
+        # self.__help_button = QPushButton("?")
+        # self.__precision_group_box_layout.addWidget(self.__help_button)
 
         self.__search_button.setEnabled(False)
         self.__main_layout.addWidget(self.__search_button)
 
         self.__on_folders_list_item_changed()
 
-
     def __init_widgets(self):
         self.__main_widget = QWidget()
         self.__main_layout = QVBoxLayout()
         self.__group_boxes_layout = QHBoxLayout()
+        self.__group_boxes_layout.setSpacing(8)
 
         self.__folders_group_box = QGroupBox("Папки с изображениями")
         self.__folders_group_box_layout = QVBoxLayout()
@@ -92,7 +138,7 @@ class MainWindow(QMainWindow):
         self.__search_button.clicked.connect(self.__on_search_button_clicked)
 
     def __on_add_button_click(self):
-        folder_path = QFileDialog.getExistingDirectory(self, 'Выберите папку')
+        folder_path = QFileDialog.getExistingDirectory(self, 'Выберите папку', directory=self.default_pictures_path)
         if folder_path:
             if folder_path not in self.__folders_paths:
                 self.__folders_paths.append(folder_path)
@@ -112,7 +158,9 @@ class MainWindow(QMainWindow):
             for path in self.__folders_paths:
                 image_folders.append(ImageFolder(path, formats_filter))
 
-            finder = DupeFinderByPhash(*image_folders)
+            precision = self.__precision_slider.value() / 100
+
+            finder = DupeFinderByPhash(*image_folders, precision=precision)
 
             self.__searching_window = ProgressWindow(self, finder)
             self.__searching_window.finished.connect(self.__on_search_finished)

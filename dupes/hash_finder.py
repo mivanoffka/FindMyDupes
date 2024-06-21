@@ -1,3 +1,4 @@
+import copy
 from pathlib import Path
 
 from PIL import Image
@@ -61,19 +62,28 @@ class DupeFinderByHash(DupeFinder):
             previous_hash = hashmap[previous_path]
             current_hash = hashmap[current_path]
 
-            if current_hash - previous_hash <= 1:
+            print(current_hash - previous_hash)
+
+            if current_hash - previous_hash <= self.threshold:
                 current_group.append(previous_path)
             else:
                 if len(current_group) > 0:
                     current_group.append(previous_path)
-                    groups.append(current_group)
+                    groups.append(copy.copy(current_group))
                     current_group = []
 
             self.__progress_tracker.current_value += self.__grouping_progress_delta
 
+        if len(current_group) > 0:
+            groups.append(copy.copy(current_group))
+
+        for group in groups:
+            print(group)
+
         return groups
 
     def search(self):
+        print(self.threshold)
         hashmaps = (self._get_hashmap(folder) for folder in self._image_folders)
 
         hashmap_unsorted = {}
@@ -112,3 +122,6 @@ class DupeFinderByHash(DupeFinder):
     def progress(self) -> float:
         return self.__progress_tracker.percentage
 
+    @property
+    def threshold(self) -> int:
+        return 64 - int(self._precision * 64)
