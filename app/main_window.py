@@ -138,7 +138,7 @@ class MainWindow(QMainWindow):
         self.__search_button.clicked.connect(self.__on_search_button_clicked)
 
     def __on_add_button_click(self):
-        folder_path = QFileDialog.getExistingDirectory(self, 'Выберите папку', directory=self.default_pictures_path)
+        folder_path = QFileDialog.getExistingDirectory(self, 'Выберите папку')
         if folder_path:
             if folder_path not in self.__folders_paths:
                 self.__folders_paths.append(folder_path)
