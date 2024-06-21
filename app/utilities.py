@@ -3,9 +3,10 @@ from PyQt6.QtWidgets import QMessageBox
 import sys
 import traceback
 
-def display_error_message(message: str):
+
+def display_message(message: str, title="Сообщение"):
     msgBox = QMessageBox()
-    msgBox.setText("Ошибка.")
+    msgBox.setText(title)
     msgBox.setInformativeText(message)
     msgBox.setStandardButtons(QMessageBox.StandardButton.Close)
     ret = msgBox.exec()

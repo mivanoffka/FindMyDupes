@@ -1,10 +1,12 @@
+import time
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
 from dupes import DupeFinder, DupeFinderByPhash, EmptyFoldersError, NoFormatsProvided
 from dupes.image_folder import ALLOWED_FILE_FORMATS, ImageFolder
-from searching_window import SearchingWindow
-from utilities import display_error_message
+from progress_window import ProgressWindow
+from utilities import display_message
 
 
 class MainWindow(QMainWindow):
@@ -111,14 +113,24 @@ class MainWindow(QMainWindow):
                 image_folders.append(ImageFolder(path, formats_filter))
 
             finder = DupeFinderByPhash(*image_folders)
-            self.__searching_window = SearchingWindow(finder)
-            self.__searching_window.show()
+
+            self.__searching_window = ProgressWindow(self, finder)
+            self.__searching_window.finished.connect(self.__on_search_finished)
+            self.__searching_window.open()
+
         except EmptyFoldersError as error:
-            display_error_message("В указанных папках не удалось найти ни одного файла,"
+            display_message("В указанных папках не удалось найти ни одного файла,"
                                   " который бы соответствовал выбранным форматам."
                                   " \r\n\r\nЧтобы осуществить поиск дубликатов, файлов должно быть хотя бы два.")
         except NoFormatsProvided as error:
-            display_error_message("Пожалуйста, выберите хотя бы один тип файла.")
+            display_message("Пожалуйста, выберите хотя бы один тип файла.")
+
+    def __on_search_finished(self):
+        result = self.__searching_window.execution_result
+        if result is not None:
+            message = f"Найдено {len(result)} групп(ы) дубликатов." if len(result) > 0 else "Дубликатов не найдено."
+            title = "Поиск завершён!"
+            display_message(message, title)
 
     def __get_formats_filter(self):
         formats = [key for key, value in self.__formats_check_boxes.items() if value.isChecked()]
@@ -126,7 +138,6 @@ class MainWindow(QMainWindow):
             return formats
         else:
             raise NoFormatsProvided("Please select at least one file format")
-
 
     def __on_folders_list_item_changed(self):
         self.__remove_button.setEnabled(len(self.__folders_list.selectedItems()) > 0)
