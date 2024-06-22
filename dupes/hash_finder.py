@@ -4,11 +4,7 @@ from pathlib import Path
 from PIL import Image
 from imagehash import ImageHash, phash
 
-from dupes.image_folder import ImageFolder
 from dupes.dupefinder import DupeFinder
-
-from abc import ABCMeta, abstractmethod
-
 from dupes.progress_tracker import ProgressTracker
 from .exceptions import *
 
@@ -20,18 +16,14 @@ class DupeFinderByHash(DupeFinder):
     __grouping_progress_delta: float
     __sorting_progress_delta: float
 
-    @abstractmethod
-    def _hash(self, image: Image):
-        raise NotImplementedError
-
     def _get_hashmap(self, folder) -> dict[Path, ImageHash]:
         hashmap = {}
 
         for path in folder.file_paths:
             try:
-                hashmap[path] = self._hash(Image.open(path))
-            except:
-                ...
+                hashmap[path] = phash(Image.open(path))
+            except Exception as error:
+                self._log_to_report(f"Could not open or process '{path}'")
 
             self.__progress_tracker.current_value += self.__hashing_progress_delta
 
@@ -102,7 +94,7 @@ class DupeFinderByHash(DupeFinder):
 
         return groups
 
-    def search(self):
+    def execute(self):
         hashmaps = (self._get_hashmap(folder) for folder in self._image_folders)
 
         hashmap_unsorted = {}
@@ -114,29 +106,11 @@ class DupeFinderByHash(DupeFinder):
             raise NoValidImagesError("No images were opened or processed correctly.")
 
         hashmap_sorted = self._sort_hashmap(hashmap_unsorted)
-        #self.__progress_tracker.current_value += self.__sorting_progress_delta
-
         groups = self._group_paths_by_hashes(hashmap_sorted)
 
         return groups
 
     def _initialize_progress_units(self):
-        # hashing_component = sum(folder.files_count for folder in self._image_folders)
-        # if hashing_component < 2:
-        #     raise EmptyFoldersError("Nothing to compare. Provide at least 2 files in at least 1 folder")
-        #
-        # self.__hashing_progress_delta = 1
-        #
-        # grouping_component = hashing_component / 25
-        # self.__grouping_progress_delta = self.__hashing_progress_delta / 25
-        #
-        # sorting_component = hashing_component / 8
-        # self.__sorting_progress_delta = sorting_component
-        #
-        # aim_value = hashing_component + grouping_component + sorting_component
-        #
-        # self.__progress_tracker = ProgressTracker(aim_value)
-
         self.hashing_component = sum(folder.files_count for folder in self._image_folders)
         if self.hashing_component < 2:
             raise EmptyFoldersError("Nothing to compare. Provide at least 2 files in at least 1 folder")

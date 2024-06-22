@@ -2,11 +2,11 @@ from abc import abstractmethod
 import time
 from typing import Any
 
-from dupes import DupeFinder
-from utilities import display_message
+from dupes import DupeFinder, ObservableTask
+from .utilities import display_message
 
 from PySide6.QtCore import Signal, QObject, QThread
-from progressable import Progressable
+from .progressable import Progressable
 
 
 class BackgroundTaskWorkerDefinition(QObject):
@@ -96,19 +96,19 @@ class BackgroundTaskWorker(BackgroundTaskWorkerDefinition):
         self.progress_thread.start()
 
 
-class FinderTaskWorker(BackgroundTaskWorker):
-    finder: DupeFinder
+class ObservableTaskWorker(BackgroundTaskWorker):
+    task: ObservableTask
 
-    def __init__(self, finder, progressable: Progressable):
+    def __init__(self, task: ObservableTask, progressable: Progressable):
         super().__init__(progressable)
-        self.finder = finder
+        self.task = task
 
     @property
     def progress(self):
-        return self.finder.progress
+        return self.task.progress
 
     def execute(self):
-        return self.finder.search()
+        return self.task.execute()
 
 
 

@@ -6,16 +6,16 @@ from PyQt6.QtWidgets import *
 
 from PySide6.QtCore import Signal, QThread, QObject
 
-from progressable import Progressable
-from utilities import display_message, display_detailed_error_message
-from dupes import DupeFinder, NoValidImagesError, EmptyFoldersError
+from .progressable import Progressable
+from .utilities import display_message, display_detailed_error_message
+from dupes import DupeFinder, NoValidImagesError, EmptyFoldersError, ObservableTask
 import time
 
-from background_task import FinderTaskWorker
+from .background_task import ObservableTaskWorker
 
 
 class ProgressWindow(QDialog, Progressable):
-    __dupe_finder: DupeFinder
+    __task: ObservableTask
     __finding_result: Optional[list] = None
     __execution_result: Any = None
 
@@ -35,10 +35,10 @@ class ProgressWindow(QDialog, Progressable):
         self.__execution_result = result
         self.close()
 
-    def __init__(self, parent, dupe_finder: DupeFinder):
+    def __init__(self, parent, task: ObservableTask):
         super().__init__(parent=parent)
 
-        self.__dupe_finder = dupe_finder
+        self.__task = task
 
         self.__main_widget = QWidget()
         self.__main_layout = QVBoxLayout()
@@ -62,7 +62,7 @@ class ProgressWindow(QDialog, Progressable):
         self.__task_thread = QThread()
         self.__progress_thread = QThread()
 
-        task_worker = FinderTaskWorker(self.__dupe_finder, self)
+        task_worker = ObservableTaskWorker(self.__task, self)
         task_worker.start()
 
     def update_progress(self, percentage):

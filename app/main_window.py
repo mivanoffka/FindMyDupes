@@ -6,10 +6,10 @@ from PyQt6 import QtGui
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
-from dupes import DupeFinder, DupeFinderByPhash, EmptyFoldersError, NoFormatsProvided
+from dupes import DupeFinder, EmptyFoldersError, NoFormatsProvided, DupeFinderByHash
 from dupes.image_folder import ALLOWED_FILE_FORMATS, ImageFolder
-from progress_window import ProgressWindow
-from utilities import display_message
+from .progress_window import ProgressWindow
+from .utilities import display_message
 
 
 class MainWindow(QMainWindow):
@@ -160,7 +160,7 @@ class MainWindow(QMainWindow):
 
             precision = self.__precision_slider.value() / 100
 
-            finder = DupeFinderByPhash(*image_folders, precision=precision)
+            finder = DupeFinderByHash(*image_folders, precision=precision)
 
             self.__searching_window = ProgressWindow(self, finder)
             self.__searching_window.finished.connect(self.__on_search_finished)
