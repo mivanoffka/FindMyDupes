@@ -4,7 +4,7 @@ from typing import Any
 from PySide6.QtCore import QThread
 
 
-class Progressable:
+class ProgressDisplay:
 
     @abstractmethod
     def update_progress(self, progress_value):

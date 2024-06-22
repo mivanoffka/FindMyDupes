@@ -1,12 +1,13 @@
 from abc import abstractmethod
 import time
+from datetime import timedelta
 from typing import Any
 
 from dupes import DupeFinder, ObservableTask
 from .utilities import display_message
 
 from PySide6.QtCore import Signal, QObject, QThread
-from .progressable import Progressable
+from .progressdisplay import ProgressDisplay
 
 
 class BackgroundTaskWorkerDefinition(QObject):
@@ -20,6 +21,11 @@ class BackgroundTaskWorkerDefinition(QObject):
     @property
     @abstractmethod
     def progress(self) -> float:
+        raise NotImplementedError()
+
+    @property
+    @abstractmethod
+    def duration(self) -> timedelta:
         raise NotImplementedError()
 
     def run(self):
@@ -48,7 +54,7 @@ class ProgressWorker(QObject):
 
         self.progress.emit(100)
         time.sleep(0.1)
-        self.finished.emit(self.bg_worker.result)
+        self.finished.emit((self.bg_worker.result, self.bg_worker.duration))
 
 
 class BackgroundTaskWorker(BackgroundTaskWorkerDefinition):
@@ -63,7 +69,7 @@ class BackgroundTaskWorker(BackgroundTaskWorkerDefinition):
     def progress(self) -> float:
         raise NotImplementedError()
 
-    def __init__(self, progressable: Progressable):
+    def __init__(self, progressable: ProgressDisplay):
         bg_task_thread = progressable.task_thread
         progress_thread = progressable.progress_thread
         gui_progress_updater = progressable.update_progress
@@ -99,13 +105,17 @@ class BackgroundTaskWorker(BackgroundTaskWorkerDefinition):
 class ObservableTaskWorker(BackgroundTaskWorker):
     task: ObservableTask
 
-    def __init__(self, task: ObservableTask, progressable: Progressable):
+    def __init__(self, task: ObservableTask, progressable: ProgressDisplay):
         super().__init__(progressable)
         self.task = task
 
     @property
     def progress(self):
         return self.task.progress
+
+    @property
+    def duration(self) -> timedelta:
+        return self.task.duration
 
     def execute(self):
         return self.task.execute()

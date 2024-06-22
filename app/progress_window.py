@@ -6,15 +6,16 @@ from PyQt6.QtWidgets import *
 
 from PySide6.QtCore import Signal, QThread, QObject
 
-from .progressable import Progressable
+from .progressdisplay import ProgressDisplay
 from .utilities import display_message, display_detailed_error_message
-from dupes import DupeFinder, NoValidImagesError, EmptyFoldersError, ObservableTask
+from dupes import DupeFinder, ObservableTask
+from dupes.exceptions import NoValidImagesError, EmptyFoldersError
 import time
 
 from .background_task import ObservableTaskWorker
 
 
-class ProgressWindow(QDialog, Progressable):
+class ProgressWindow(QDialog, ProgressDisplay):
     __task: ObservableTask
     __finding_result: Optional[list] = None
     __execution_result: Any = None
@@ -70,7 +71,10 @@ class ProgressWindow(QDialog, Progressable):
         self.__progress_bar.setValue(int(percentage))
 
     def display_result(self, result):
-        self.__percentage_label.setText(f"Найдено {result} групп дубликатов")
+        count = result[0]
+        duration = round(result[1].total_seconds() / 1000, 1)
+
+        self.__percentage_label.setText(f"Найдено {count} групп(ы) дубликатов за {duration} c.")
         self.__progress_bar.setValue(100)
 
 

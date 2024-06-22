@@ -6,7 +6,8 @@ from PyQt6 import QtGui
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
-from dupes import DupeFinder, EmptyFoldersError, NoFormatsProvided, DupeFinderByHash
+from dupes import DupeFinder, DupeFinderByHash
+from dupes.exceptions import *
 from dupes.image_folder import ALLOWED_FILE_FORMATS, ImageFolder
 from .progress_window import ProgressWindow
 from .utilities import display_message
@@ -176,7 +177,12 @@ class MainWindow(QMainWindow):
     def __on_search_finished(self):
         result = self.__searching_window.execution_result
         if result is not None:
-            message = f"Найдено {len(result)} групп(ы) дубликатов." if len(result) > 0 else "Дубликатов не найдено."
+
+            count = len(result[0])
+            duration = round(result[1].total_seconds(), 1)
+
+            message = f"Найдено {count} групп(ы) дубликатов.\r\n\r\n Поиск занял {duration} c. "\
+                if len(result) > 0 else f"Дубликатов не найдено.\r\n\r\n Поиск занял {duration} c. "
             title = "Поиск завершён!"
             display_message(message, title)
 
