@@ -1,3 +1,5 @@
+from PyQt6 import QtGui
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMessageBox
 
 import sys
@@ -9,6 +11,8 @@ def display_message(message: str, title="Сообщение"):
     msgBox.setText(title)
     msgBox.setInformativeText(message)
     msgBox.setStandardButtons(QMessageBox.StandardButton.Close)
+    msgBox.setWindowIcon(QtGui.QIcon("/Users/mivanoffka/Pictures/Иконки/dupes.png"))
+
     ret = msgBox.exec()
 
 

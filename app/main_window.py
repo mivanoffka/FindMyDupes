@@ -2,6 +2,7 @@ import time
 import platform
 import getpass
 
+from PyQt6 import QtGui
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
@@ -28,7 +29,6 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.__folders_paths = []
-
 
         self.setWindowTitle("Find my dupes")
         self.setFixedSize(525, 325)

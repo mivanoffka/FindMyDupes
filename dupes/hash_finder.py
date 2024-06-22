@@ -37,18 +37,41 @@ class DupeFinderByHash(DupeFinder):
 
         return hashmap
 
-    def _sort_hashmap(self, hashmap: dict[Path, ImageHash]):
+    def _sort_hashmap(self, hashmap: dict[Path, ImageHash]) -> dict[Path, ImageHash]:
         if len(hashmap) <= 1:
             return hashmap
 
-        pivot = list(hashmap.values())[len(hashmap) // 2]
+        delta_to_finish = self.sorting_component
 
-        left = {path: hashmap[path] for path in hashmap.keys()
-                if hashmap[path] - pivot == 0}
-        right = {path: hashmap[path] for path in hashmap.keys()
-                 if hashmap[path] - pivot > 0}
+        hashmap_list = list(hashmap.items())
+        stack = [(0, len(hashmap_list) - 1)]
 
-        return left | self._sort_hashmap(right)
+        while stack:
+            low, high = stack.pop()
+
+            if low < high:
+                pivot_index = (low + high) // 2
+                pivot = hashmap_list[pivot_index][1]
+
+                hashmap_list[pivot_index], hashmap_list[high] = hashmap_list[high], hashmap_list[pivot_index]
+
+                store_index = low
+
+                for i in range(low, high):
+                    self.__progress_tracker.current_value += self.__sorting_progress_delta
+                    delta_to_finish -= self.__sorting_progress_delta
+
+                    if hashmap_list[i][1] - pivot <= 0:
+                        hashmap_list[store_index], hashmap_list[i] = hashmap_list[i], hashmap_list[store_index]
+                        store_index += 1
+
+                hashmap_list[store_index], hashmap_list[high] = hashmap_list[high], hashmap_list[store_index]
+
+                stack.append((low, store_index - 1))
+                stack.append((store_index + 1, high))
+
+        self.__progress_tracker.current_value += delta_to_finish
+        return dict(hashmap_list)
 
     def _group_paths_by_hashes(self, hashmap) -> list:
         groups = []
@@ -57,7 +80,7 @@ class DupeFinderByHash(DupeFinder):
 
         for i in range(0, len(paths)):
             current_path = paths[i]
-            previous_path = paths[i-1] if i != 0 else paths[len(paths)-1]
+            previous_path = paths[i - 1] if i != 0 else paths[len(paths) - 1]
 
             previous_hash = hashmap[previous_path]
             current_hash = hashmap[current_path]
@@ -95,26 +118,42 @@ class DupeFinderByHash(DupeFinder):
             raise NoValidImagesError("No images were opened or processed correctly.")
 
         hashmap_sorted = self._sort_hashmap(hashmap_unsorted)
-        self.__progress_tracker.current_value += self.__sorting_progress_delta
+        #self.__progress_tracker.current_value += self.__sorting_progress_delta
 
         groups = self._group_paths_by_hashes(hashmap_sorted)
 
         return groups
 
     def _initialize_progress_units(self):
-        hashing_component = sum(folder.files_count for folder in self._image_folders)
-        if hashing_component < 2:
+        # hashing_component = sum(folder.files_count for folder in self._image_folders)
+        # if hashing_component < 2:
+        #     raise EmptyFoldersError("Nothing to compare. Provide at least 2 files in at least 1 folder")
+        #
+        # self.__hashing_progress_delta = 1
+        #
+        # grouping_component = hashing_component / 25
+        # self.__grouping_progress_delta = self.__hashing_progress_delta / 25
+        #
+        # sorting_component = hashing_component / 8
+        # self.__sorting_progress_delta = sorting_component
+        #
+        # aim_value = hashing_component + grouping_component + sorting_component
+        #
+        # self.__progress_tracker = ProgressTracker(aim_value)
+
+        self.hashing_component = sum(folder.files_count for folder in self._image_folders)
+        if self.hashing_component < 2:
             raise EmptyFoldersError("Nothing to compare. Provide at least 2 files in at least 1 folder")
 
         self.__hashing_progress_delta = 1
 
-        grouping_component = hashing_component / 25
-        self.__grouping_progress_delta = self.__hashing_progress_delta / 25
+        self.sorting_component = self.hashing_component / 2
+        self.__sorting_progress_delta = 1 / self.hashing_component / 2
 
-        sorting_component = hashing_component / 8
-        self.__sorting_progress_delta = sorting_component
+        self.grouping_component = self.hashing_component / 16
+        self.__grouping_progress_delta = self.__hashing_progress_delta / 16
 
-        aim_value = hashing_component + grouping_component + sorting_component
+        aim_value = self.hashing_component + self.grouping_component + self.sorting_component
 
         self.__progress_tracker = ProgressTracker(aim_value)
 
