@@ -100,13 +100,9 @@ class DupeFinderByHash(DupeFinder):
         if len(current_group) > 0:
             groups.append(copy.copy(current_group))
 
-        for group in groups:
-            print(group)
-
         return groups
 
     def search(self):
-        print(self.threshold)
         hashmaps = (self._get_hashmap(folder) for folder in self._image_folders)
 
         hashmap_unsorted = {}
