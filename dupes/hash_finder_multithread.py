@@ -14,7 +14,7 @@ import concurrent.futures
 import numpy
 
 
-class DupeFinderByHash(DupeFinder):
+class DupeFinderByHashMultithread(DupeFinder):
     __progress_tracker: ProgressTracker
 
     __hashing_progress_delta: float
@@ -22,18 +22,22 @@ class DupeFinderByHash(DupeFinder):
     __sorting_progress_delta: float
 
     def _get_hashmap(self, folder) -> dict[Path, ImageHash]:
+        def split_list(lst, n):
+            k, m = divmod(len(lst), n)
+            return [lst[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n)]
+
         hashmap = {}
 
-        for path in folder.file_paths:
-            try:
-                hashmap[path] = phash(Image.open(path))
-            except Exception as error:
-                self._log_to_report(f"Could not open or process '{path}'")
+        file_paths = folder.file_paths
+        file_paths_parted = split_list(file_paths, os.cpu_count())
 
-            self.__progress_tracker.current_value += self.__hashing_progress_delta
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            results = list(executor.map(self._hashmapping_thread, file_paths_parted))
+
+        for result in results:
+            hashmap.update(result)
 
         return hashmap
-
 
     def _hashmapping_thread(self, file_paths):
         hashmap = {}
@@ -47,19 +51,6 @@ class DupeFinderByHash(DupeFinder):
             self.__progress_tracker.current_value += self.__hashing_progress_delta
 
         return hashmap
-
-    # def _get_hashmap(self, folder) -> dict[Path, ImageHash]:
-    #     hashmap = {}
-    #
-    #     for path in folder.file_paths:
-    #         try:
-    #             hashmap[path] = phash(Image.open(path))
-    #         except Exception as error:
-    #             self._log_to_report(f"Could not open or process '{path}'")
-    #
-    #         self.__progress_tracker.current_value += self.__hashing_progress_delta
-    #
-    #     return hashmap
 
     def _sort_hashmap(self, hashmap: dict[Path, ImageHash]) -> dict[Path, ImageHash]:
         if len(hashmap) <= 1:
