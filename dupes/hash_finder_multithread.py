@@ -14,6 +14,10 @@ import concurrent.futures
 import numpy
 
 
+# This should have been a DupeFinderByHash derivative class,
+# but for an unknown reason using an inherited class from DupeFinderByHash
+# that has any override method crashes PyQt threading system
+
 class DupeFinderByHashMultithread(DupeFinder):
     __progress_tracker: ProgressTracker
 
@@ -31,7 +35,7 @@ class DupeFinderByHashMultithread(DupeFinder):
         file_paths = folder.file_paths
         file_paths_parted = split_list(file_paths, os.cpu_count())
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with concurrent.futures.ProcessPoolExecutor() as executor:
             results = list(executor.map(self._hashmapping_thread, file_paths_parted))
 
         for result in results:

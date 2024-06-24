@@ -1,6 +1,7 @@
+import struct
 from abc import abstractmethod
 import time
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Any
 
 from dupes import DupeFinder, ObservableTask
@@ -8,6 +9,11 @@ from .utilities import display_message
 
 from PySide6.QtCore import Signal, QObject, QThread
 from .progressdisplay import ProgressDisplay
+
+import socket
+import threading
+import json
+import pickle
 
 
 class BackgroundTaskWorkerDefinition(QObject):
@@ -31,6 +37,7 @@ class BackgroundTaskWorkerDefinition(QObject):
     def run(self):
         try:
             self.result = self.execute()
+
         except Exception as error:
             display_message(str(error))
 
@@ -46,12 +53,34 @@ class ProgressWorker(QObject):
         super().__init__()
         self.bg_worker = bg_worker
 
+    def _get_progress(self) -> float:
+        try:
+            client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client.connect(('127.0.0.1', 9999))
+
+            data = pickle.dumps("GET_PROGRESS")
+            len_data = struct.pack('>I', len(data))
+
+            client.send(len_data)
+            client.send(data)
+
+            msglen = struct.unpack('>I', client.recv(4))[0]
+            response = client.recv(msglen)
+            result = pickle.loads(response)
+            client.close()
+            return result
+        except Exception as e:
+            print(e)
+
+        return 0
+
     def run(self):
         while self.bg_worker.result is None:
-            percentage = round(self.bg_worker.progress * 100, 1)
+            percentage = round(self._get_progress() * 100, 1)
             self.progress.emit(percentage)
             time.sleep(0.1)
 
+        print('finished!!!')
         self.progress.emit(100)
         time.sleep(0.1)
         self.finished.emit((self.bg_worker.result, self.bg_worker.duration))
@@ -98,8 +127,9 @@ class BackgroundTaskWorker(BackgroundTaskWorkerDefinition):
         self.progress_worker.finished.connect(on_finish)
 
     def start(self):
-        self.bg_task_thread.start()
         self.progress_thread.start()
+        self.bg_task_thread.start()
+
 
 
 class ObservableTaskWorker(BackgroundTaskWorker):
@@ -115,10 +145,30 @@ class ObservableTaskWorker(BackgroundTaskWorker):
 
     @property
     def duration(self) -> timedelta:
-        return self.task.duration
+        return self.finish_time - self.start_time
 
     def execute(self):
-        return self.task.execute()
+        try:
+            self.start_time = datetime.now()
+            client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client.connect(('127.0.0.1', 9999))
+            client.settimeout(10000)
+
+            data = pickle.dumps(self.task)
+            len_data = struct.pack('>I', len(data))
+
+            client.send(len_data)
+            client.send(data)
+
+            msglen = struct.unpack('>I', client.recv(4))[0]
+            response = client.recv(msglen)
+            result = pickle.loads(response)
+
+            client.close()
+            self.finish_time = datetime.now()
+            return result
+        except Exception as e:
+            print(e)
 
 
 
