@@ -1,5 +1,6 @@
 import copy
 import os
+from abc import abstractmethod
 from datetime import timedelta
 from pathlib import Path
 
@@ -15,11 +16,11 @@ import numpy
 
 
 class DupeFinderByHash(DupeFinder):
-    __progress_tracker: ProgressTracker
+    _progress_tracker: ProgressTracker
 
-    __hashing_progress_delta: float
-    __grouping_progress_delta: float
-    __sorting_progress_delta: float
+    _hashing_progress_delta: float
+    _grouping_progress_delta: float
+    _sorting_progress_delta: float
 
     def _get_hashmap(self, folder) -> dict[Path, ImageHash]:
         hashmap = {}
@@ -30,36 +31,9 @@ class DupeFinderByHash(DupeFinder):
             except Exception as error:
                 self._log_to_report(f"Could not open or process '{path}'")
 
-            self.__progress_tracker.current_value += self.__hashing_progress_delta
+            self._progress_tracker.current_value += self._hashing_progress_delta
 
         return hashmap
-
-
-    def _hashmapping_thread(self, file_paths):
-        hashmap = {}
-
-        for path in file_paths:
-            try:
-                hashmap[path] = phash(Image.open(path))
-            except Exception as error:
-                self._log_to_report(f"Could not open or process '{path}'")
-
-            self.__progress_tracker.current_value += self.__hashing_progress_delta
-
-        return hashmap
-
-    # def _get_hashmap(self, folder) -> dict[Path, ImageHash]:
-    #     hashmap = {}
-    #
-    #     for path in folder.file_paths:
-    #         try:
-    #             hashmap[path] = phash(Image.open(path))
-    #         except Exception as error:
-    #             self._log_to_report(f"Could not open or process '{path}'")
-    #
-    #         self.__progress_tracker.current_value += self.__hashing_progress_delta
-    #
-    #     return hashmap
 
     def _sort_hashmap(self, hashmap: dict[Path, ImageHash]) -> dict[Path, ImageHash]:
         if len(hashmap) <= 1:
@@ -82,8 +56,8 @@ class DupeFinderByHash(DupeFinder):
                 store_index = low
 
                 for i in range(low, high):
-                    self.__progress_tracker.current_value += self.__sorting_progress_delta
-                    delta_to_finish -= self.__sorting_progress_delta
+                    self._progress_tracker.current_value += self._sorting_progress_delta
+                    delta_to_finish -= self._sorting_progress_delta
 
                     if hashmap_list[i][1] - pivot <= 0:
                         hashmap_list[store_index], hashmap_list[i] = hashmap_list[i], hashmap_list[store_index]
@@ -94,7 +68,7 @@ class DupeFinderByHash(DupeFinder):
                 stack.append((low, store_index - 1))
                 stack.append((store_index + 1, high))
 
-        self.__progress_tracker.current_value += delta_to_finish
+        self._progress_tracker.current_value += delta_to_finish
         return dict(hashmap_list)
 
     def _group_paths_by_hashes(self, hashmap) -> list:
@@ -117,7 +91,7 @@ class DupeFinderByHash(DupeFinder):
                     groups.append(copy.copy(current_group))
                     current_group = []
 
-            self.__progress_tracker.current_value += self.__grouping_progress_delta
+            self._progress_tracker.current_value += self._grouping_progress_delta
 
         if len(current_group) > 0:
             groups.append(copy.copy(current_group))
@@ -125,7 +99,7 @@ class DupeFinderByHash(DupeFinder):
         return groups
 
     def execute(self):
-        self.__progress_tracker.start()
+        self._progress_tracker.start()
         hashmaps = (self._get_hashmap(folder) for folder in self._image_folders)
 
         hashmap_unsorted = {}
@@ -139,7 +113,7 @@ class DupeFinderByHash(DupeFinder):
         hashmap_sorted = self._sort_hashmap(hashmap_unsorted)
         groups = self._group_paths_by_hashes(hashmap_sorted)
 
-        self.__progress_tracker.finish()
+        self._progress_tracker.finish()
 
         return groups
 
@@ -148,21 +122,21 @@ class DupeFinderByHash(DupeFinder):
         if self.hashing_component < 2:
             raise EmptyFoldersError("Nothing to compare. Provide at least 2 files in at least 1 folder")
 
-        self.__hashing_progress_delta = 1
+        self._hashing_progress_delta = 1
 
         self.sorting_component = self.hashing_component / 2
-        self.__sorting_progress_delta = 1 / self.hashing_component / 2
+        self._sorting_progress_delta = 1 / self.hashing_component / 2
 
         self.grouping_component = self.hashing_component / 16
-        self.__grouping_progress_delta = self.__hashing_progress_delta / 16
+        self._grouping_progress_delta = self._hashing_progress_delta / 16
 
         aim_value = self.hashing_component + self.grouping_component + self.sorting_component
 
-        self.__progress_tracker = ProgressTracker(aim_value)
+        self._progress_tracker = ProgressTracker(aim_value)
 
     @property
     def progress(self) -> float:
-        return self.__progress_tracker.percentage
+        return self._progress_tracker.percentage
 
     @property
     def threshold(self) -> int:
@@ -170,4 +144,4 @@ class DupeFinderByHash(DupeFinder):
 
     @property
     def duration(self) -> timedelta:
-        return self.__progress_tracker.duration
+        return self._progress_tracker.duration
