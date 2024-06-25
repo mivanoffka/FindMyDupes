@@ -13,9 +13,6 @@ class Application:
     __main_window: MainWindow
     __internal_server_process: subprocess.Popen
 
-    def __init__(self):
-        self.__app = QApplication(sys.argv)
-        self.__main_window = MainWindow()
 
     def start(self):
         try:
@@ -25,6 +22,8 @@ class Application:
                                                   " из-за проблемы с запуском внутреннего сервера.", )
             return
         try:
+            self.__app = QApplication(sys.argv)
+            self.__main_window = MainWindow()
             self.__main_window.show()
             self.__app.exec()
         except Exception as error:

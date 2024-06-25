@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.__main_widget)
 
-        self.__main_layout.setSpacing(0)
+        self.__main_layout.setSpacing(8)
         self.__main_widget.setLayout(self.__main_layout)
         self.__main_layout.addLayout(self.__group_boxes_layout)
 
