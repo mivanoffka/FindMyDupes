@@ -1,11 +1,11 @@
 import subprocess
 import sys
-import time
 
 from PyQt6.QtWidgets import QApplication
 
+from dupes import InternalServer
 from qt.main_window import MainWindow
-from dupes.server import communicate_with_server
+from qt.utility import display_detailed_error_message
 
 
 class Application:
@@ -19,28 +19,18 @@ class Application:
 
     def start(self):
         try:
-            self.__internal_server_process = subprocess.Popen(["python", "server_script.py"])
-            time.sleep(2)
-            if not communicate_with_server("IS_ALIVE"):
-                raise Exception()
-
+            InternalServer().launch_process()
         except Exception as error:
-            print("Unable to start internal server process.\n " + str(error))
+            display_detailed_error_message(error, "Приложение не удалось запустить"
+                                                  " из-за проблемы с запуском внутреннего сервера.", )
             return
-
-        print("Internal server process started.")
-
         try:
             self.__main_window.show()
             self.__app.exec()
         except Exception as error:
-            print("A critical error has occurred.\n " + str(error))
+            display_detailed_error_message(error, "Произошла критическая ошибка!", )
 
-        try:
-            communicate_with_server("TERMINATE")
-            print("Internal server process terminated.")
-        except Exception as error:
-            print("Unable to terminate internal server process.\n " + str(error))
+        InternalServer().communicate_with("TERMINATE")
 
 
 if __name__ == "__main__":

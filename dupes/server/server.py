@@ -1,9 +1,12 @@
 import socket
+import subprocess
 import threading
-from typing import Optional
+import time
+from typing import Optional, Any
 
 from dupes import ObservableTask
 from .utilities import send_data, receive_data
+from dupes.exceptions import NoPortsAvailableError, ServerNotStartedError
 
 
 class Server:
@@ -15,6 +18,8 @@ class Server:
     _must_terminate = False
 
     _commands_queue = []
+    _process: subprocess.Popen
+
 
     @property
     def address(self):

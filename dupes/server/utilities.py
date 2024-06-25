@@ -19,17 +19,4 @@ def receive_data(the_socket: socket.socket):
     return pickle.loads(response)
 
 
-def communicate_with_server(data: Any):
-    result = (None, )
 
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(('127.0.0.1', 9999))
-    client.settimeout(99999)
-
-    send_data(client, data)
-
-    result = receive_data(client)
-
-    client.close()
-
-    return result

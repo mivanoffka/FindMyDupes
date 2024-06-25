@@ -12,3 +12,11 @@ class NoFormatsProvided(Exception):
 
 class TaskNotStartedError(Exception):
     ...
+
+
+class NoPortsAvailableError(Exception):
+    ...
+
+
+class ServerNotStartedError(Exception):
+    ...
