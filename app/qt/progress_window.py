@@ -1,18 +1,14 @@
-import threading
 from typing import Optional, Any
 
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
-from PySide6.QtCore import Signal, QThread, QObject
+from PySide6.QtCore import QThread
 
-from .progressdisplay import ProgressDisplay
-from .utilities import display_message, display_detailed_error_message
-from dupes import DupeFinder, ObservableTask
-from dupes.exceptions import NoValidImagesError, EmptyFoldersError
-import time
+from .utility import ProgressDisplay
+from dupes import ObservableTask
 
-from .background_task import ObservableTaskWorker
+from .utility import ObservableTaskWorker
 
 
 class ProgressWindow(QDialog, ProgressDisplay):

@@ -1,18 +1,13 @@
 import copy
-import os
-from abc import abstractmethod
 from datetime import timedelta
 from pathlib import Path
 
 from PIL import Image
 from imagehash import ImageHash, phash
 
-from dupes.dupefinder import DupeFinder
-from dupes.progress_tracker import ProgressTracker
-from .exceptions import *
-
-import concurrent.futures
-import numpy
+from dupes.finders.dupefinder import DupeFinder
+from dupes.utility.progress_tracker import ProgressTracker
+from dupes.exceptions import *
 
 
 class DupeFinderByHash(DupeFinder):

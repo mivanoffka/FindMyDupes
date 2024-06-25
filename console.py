@@ -15,7 +15,7 @@ def start():
         print("Folder path:   ", end="")
         path_str = input()
 
-        finder = DupeFinderByPhash(ImageFolder(path_str))
+        finder = DupeFinderByHash(ImageFolder(path_str), precision=0.9)
 
         threading.Thread(target=search, args=(finder,)).start()
 
@@ -50,7 +50,7 @@ def start():
 
 def search(finder: DupeFinder):
     global result
-    result = finder.search()
+    result = finder.execute()
 
 
 if __name__ == "__main__":

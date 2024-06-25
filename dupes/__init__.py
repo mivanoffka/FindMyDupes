@@ -1,5 +1,3 @@
-from .hash_finder import DupeFinderByHash
-from .dupefinder import DupeFinder
-from .image_folder import ImageFolder
-from .observable_task import ObservableTask
-from .hash_finder_parallelable import DupeFinderByHashMultiCore, DupeFinderByHashMultiThread
+from .finders import DupeFinder, DupeFinderByHash, DupeFinderByHashMultiThread
+from .utility import ObservableTask, ProgressTracker, ImageFolder
+from .server import Server, communicate_with_server

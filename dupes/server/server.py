@@ -1,12 +1,9 @@
 import socket
-import pickle
-import socket
-import struct
 import threading
-from typing import Optional, Any
+from typing import Optional
 
 from dupes import ObservableTask
-from utilities import send_data, receive_data
+from .utilities import send_data, receive_data
 
 
 class Server:
@@ -18,7 +15,6 @@ class Server:
     _must_terminate = False
 
     _commands_queue = []
-    INT_LEN = 15
 
     @property
     def address(self):
@@ -69,6 +65,13 @@ class Server:
                         result = self._executing_task.progress
                     else:
                         result = -1
+                if converted_request == "IS_ALIVE":
+                    result = True
+                if converted_request == "TERMINATE":
+                    self._socket.close()
+                    self._must_terminate = True
+
+
             else:
                 result = "ERROR. UNKNOWN REQUEST TYPE."
 
@@ -78,10 +81,3 @@ class Server:
         except Exception as error:
             print(error)
             client_socket.close()
-
-
-
-if __name__ == '__main__':
-    server = Server()
-    server.launch()
-

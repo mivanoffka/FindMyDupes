@@ -1,15 +1,13 @@
-import pickle
 import socket
-import struct
 import time
 from abc import abstractmethod
 from datetime import timedelta, datetime
 
 from PySide6.QtCore import Signal, QObject
 
-from app.utilities import send_data, receive_data, communicate_with_server
+from dupes import communicate_with_server
 from dupes import ObservableTask
-from .progressdisplay import ProgressDisplay
+from . import ProgressDisplay
 from .utilities import display_message
 
 

@@ -1,0 +1,2 @@
+from .multithread import DupeFinderByHashMultiThread
+from .singlethread import DupeFinderByHash

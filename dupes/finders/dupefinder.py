@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
-from dupes.image_folder import ImageFolder
-from dupes.observable_task import ObservableTask
+from dupes.utility.image_folder import ImageFolder
+from dupes.utility.observable_task import ObservableTask
 
 
 class DupeFinder(ObservableTask):

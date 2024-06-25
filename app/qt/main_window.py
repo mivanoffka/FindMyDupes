@@ -1,16 +1,15 @@
-import time
 import platform
 import getpass
 
-from PyQt6 import QtGui
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
-from dupes import DupeFinder, DupeFinderByHash, DupeFinderByHashMultiCore, DupeFinderByHashMultiThread
+from dupes import DupeFinderByHash, DupeFinderByHashMultiThread
 from dupes.exceptions import *
-from dupes.image_folder import ALLOWED_FILE_FORMATS, ImageFolder
+from dupes.utility.image_folder import ALLOWED_FILE_FORMATS, ImageFolder
+
+from .utility import display_message, ProgressDisplay
 from .progress_window import ProgressWindow
-from .utilities import display_message
 
 
 class MainWindow(QMainWindow):
@@ -54,9 +53,9 @@ class MainWindow(QMainWindow):
         self.__method_group_box_layout = QVBoxLayout()
         self.__method_group_box.setLayout(self.__method_group_box_layout)
         self.__method_combo_box = QComboBox()
+        self.__method_combo_box.addItem("Хеширование")
         self.__method_combo_box.addItem("Хеширование (однопоточн.)")
-        self.__method_combo_box.addItem("Хеширование (многопоточн.)")
-        self.__method_combo_box.addItem("Хеширование (многоядерн.)")
+
 
         #self.__method_combo_box.addItem("Нейросеть")
         self.__method_group_box_layout.addWidget(self.__method_combo_box)
@@ -164,7 +163,7 @@ class MainWindow(QMainWindow):
 
             precision = self.__precision_slider.value() / 100
 
-            finder_types = {0: DupeFinderByHash, 1: DupeFinderByHashMultiThread, 2: DupeFinderByHashMultiCore}
+            finder_types = {1: DupeFinderByHash, 0: DupeFinderByHashMultiThread}
 
             finder_type = finder_types[self.__method_combo_box.currentIndex()]
 

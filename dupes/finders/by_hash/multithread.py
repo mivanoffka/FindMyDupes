@@ -1,28 +1,22 @@
 import concurrent.futures
+import concurrent.futures
 import os
-from abc import abstractmethod
 from pathlib import Path
 
 from PIL import Image
 from imagehash import ImageHash, phash
 
-from dupes.hash_finder import DupeFinderByHash
-import concurrent.futures
+from dupes.finders.by_hash.singlethread import DupeFinderByHash
 
 
-class DupeFinderByHashParallelable(DupeFinderByHash):
-    @property
-    @abstractmethod
-    def PoolType(self) -> type:
-        raise NotImplementedError()
-
+class DupeFinderByHashMultiThread(DupeFinderByHash):
     def _get_hashmap(self, folder) -> dict[Path, ImageHash]:
         hashmap = {}
 
         file_paths = folder.file_paths
         file_paths_parted = self._split_list(file_paths, os.cpu_count())
 
-        with self.PoolType() as executor:
+        with concurrent.futures.ThreadPoolExecutor() as executor:
             results = list(executor.map(self._thread, file_paths_parted))
 
         for result in results:
@@ -46,16 +40,4 @@ class DupeFinderByHashParallelable(DupeFinderByHash):
             self._progress_tracker.current_value += self._hashing_progress_delta
 
         return hmp
-
-
-class DupeFinderByHashMultiThread(DupeFinderByHashParallelable):
-    @property
-    def PoolType(self) -> type:
-        return concurrent.futures.ThreadPoolExecutor
-
-
-class DupeFinderByHashMultiCore(DupeFinderByHashParallelable):
-    @property
-    def PoolType(self) -> type:
-        return concurrent.futures.ThreadPoolExecutor
 
