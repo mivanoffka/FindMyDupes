@@ -8,12 +8,12 @@ from typing import Optional, Any
 
 from dupes import ObservableTask
 from dupes.exceptions import NoPortsAvailableError, ServerNotStartedError
-from py_singleton import singleton
+from .singleton import Singleton
 
 from config import BASE_DIR
 
-@singleton
-class InternalServer:
+
+class InternalServer(metaclass=Singleton):
     _process: subprocess.Popen
     _port: int = -1
     _MAX_IS_ALIVE_ATTEMPTS = 6
