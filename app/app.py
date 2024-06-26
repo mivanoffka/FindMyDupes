@@ -1,6 +1,8 @@
 import subprocess
 import sys
+import platform
 
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
 
 from dupes import InternalServer
@@ -13,6 +15,11 @@ class Application:
     __main_window: MainWindow
     __internal_server_process: subprocess.Popen
 
+    def set_stylesheet(self):
+        #if platform.system() == "Windows":
+        with open("assets/style/fluent_design.qss") as f:
+            self.__app.setStyleSheet(f.read())
+
     def start(self):
         try:
             InternalServer().launch_process()
@@ -22,6 +29,8 @@ class Application:
             return
         try:
             self.__app = QApplication(sys.argv)
+            self.__app.setWindowIcon(QIcon("assets/dupes.png"))
+            self.set_stylesheet()
             self.__main_window = MainWindow()
             self.__main_window.show()
             self.__app.exec()
