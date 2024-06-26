@@ -27,46 +27,98 @@ class MainWindow(QMainWindow):
     def default_pictures_path(self):
         return self.DEFAULT_PICTURES_PATHS[self.__os].format(self.__username)
 
-
     def __init__(self):
         super().__init__()
         self.__folders_paths = []
 
+        self.__init_ui()
+
+    def __init_ui(self):
         self.setWindowTitle("Find my dupes")
         self.setFixedSize(525, 325)
 
-        self.__init_widgets()
-        self.__init_folders_group_box()
-        self.__init_formats_group_box()
-        self.__connect_event_handlers()
-
-        self.setCentralWidget(self.__main_widget)
-
-        self.__main_layout.setSpacing(8)
+        #region Main widget and layouts
+        self.__main_widget = QWidget()
+        self.__main_layout = QVBoxLayout()
         self.__main_widget.setLayout(self.__main_layout)
+        self.setCentralWidget(self.__main_widget)
+        #endregion
+
+        #region Group boxes layout
+        self.__group_boxes_layout = QHBoxLayout()
+        self.__group_boxes_layout.setSpacing(8)
         self.__main_layout.addLayout(self.__group_boxes_layout)
+        #endregion
 
+        #region Folders group box
+        self.__folders_group_box = QGroupBox("Папки с изображениями")
+        self.__folders_group_box_layout = QVBoxLayout()
+        self.__folders_group_box_layout.setSpacing(2)
+        self.__folders_group_box.setLayout(self.__folders_group_box_layout)
+        self.__group_boxes_layout.addWidget(self.__folders_group_box, 2)
+
+        self.__folders_list = QListWidget()
+        self.__folders_list.setSpacing(2)
+        self.__folders_group_box_layout.addWidget(self.__folders_list)
+        #endregion
+
+        #region Buttons for folder management
+        self.__buttons_layout = QHBoxLayout()
+        self.__buttons_layout.setSpacing(6)
+        self.__folders_group_box_layout.addLayout(self.__buttons_layout)
+
+        self.__add_button = QPushButton("Добавить")
+        self.__remove_button = QPushButton("Удалить")
+        self.__remove_button.setEnabled(False)
+
+        self.__buttons_layout.addWidget(self.__add_button, 3)
+        self.__buttons_layout.addWidget(self.__remove_button, 2)
+        #endregion
+
+        #region Formats group box
+        self.__formats_group_box = QGroupBox("Типы")
+        self.__formats_group_box.setFixedWidth(100)
+        self.__formats_check_boxes = {}
+        self.__group_boxes_layout.addWidget(self.__formats_group_box, 1)
+
+        formats_group_layout = QVBoxLayout()
+        formats_group_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        formats_group_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        formats_group_layout.setSpacing(12)
+        self.__formats_group_box.setLayout(formats_group_layout)
+
+        # Add checkboxes for allowed file formats
+        for file_format in ALLOWED_FILE_FORMATS:
+            self.__formats_check_boxes[file_format] = QCheckBox(file_format)
+            self.__formats_check_boxes[file_format].setChecked(True)
+            formats_group_layout.addWidget(self.__formats_check_boxes[file_format])
+        #endregion
+
+        #region Options group boxes layout
         self.__options_group_boxes_layout = QHBoxLayout()
-        self.__main_layout.addLayout(self.__options_group_boxes_layout)
-
-        self.__method_group_box = QGroupBox("Метод поиска")
-        self.__options_group_boxes_layout.addWidget(self.__method_group_box, 2)
         self.__options_group_boxes_layout.setSpacing(8)
+        self.__main_layout.addLayout(self.__options_group_boxes_layout)
+        #endregion
+
+        #region Method group box
+        self.__method_group_box = QGroupBox("Метод поиска")
         self.__method_group_box_layout = QVBoxLayout()
         self.__method_group_box.setLayout(self.__method_group_box_layout)
+        self.__options_group_boxes_layout.addWidget(self.__method_group_box, 2)
+
         self.__method_combo_box = QComboBox()
         self.__method_combo_box.addItem("Хеширование")
         self.__method_combo_box.addItem("Хеширование (однопоточн.)")
-
-
-        #self.__method_combo_box.addItem("Нейросеть")
         self.__method_group_box_layout.addWidget(self.__method_combo_box)
+        #endregion
 
+        #region Precision group box
         self.__precision_group_box = QGroupBox("Процент схожести изображений")
-        self.__options_group_boxes_layout.addWidget(self.__precision_group_box, 3)
         self.__precision_group_box_layout = QHBoxLayout()
         self.__precision_group_box_layout.setSpacing(12)
         self.__precision_group_box.setLayout(self.__precision_group_box_layout)
+        self.__options_group_boxes_layout.addWidget(self.__precision_group_box, 3)
+
         self.__precision_label = QLabel("90%")
         self.__precision_group_box_layout.addWidget(self.__precision_label)
 
@@ -78,69 +130,25 @@ class MainWindow(QMainWindow):
             lambda: self.__precision_label.setText(f"{self.__precision_slider.value()}%")
         )
         self.__precision_group_box_layout.addWidget(self.__precision_slider)
-        # self.__help_button = QPushButton("?")
-        # self.__precision_group_box_layout.addWidget(self.__help_button)
+        #endregion
 
+        #region Search button
+        self.__search_button = QPushButton("Поиск дубликатов")
         self.__search_button.setEnabled(False)
         self.__main_layout.addWidget(self.__search_button)
+        #endregion
 
-        self.__on_folders_list_item_changed()
-
-    def __init_widgets(self):
-        self.__main_widget = QWidget()
-        self.__main_layout = QVBoxLayout()
-        self.__group_boxes_layout = QHBoxLayout()
-        self.__group_boxes_layout.setSpacing(8)
-
-        self.__folders_group_box = QGroupBox("Папки с изображениями")
-        self.__folders_group_box_layout = QVBoxLayout()
-
-        self.__folders_list = QListWidget()
-        self.__buttons_layout = QHBoxLayout()
-
-        self.__add_button = QPushButton("Добавить")
-        self.__remove_button = QPushButton("Удалить")
-
-        self.__formats_group_box = QGroupBox("Типы")
-        self.__formats_check_boxes = {}
-        self.__search_button = QPushButton("Поиск дубликатов")
-
-    def __init_folders_group_box(self):
-        self.__folders_group_box_layout.setSpacing(2)
-        self.__folders_group_box.setLayout(self.__folders_group_box_layout)
-        self.__group_boxes_layout.addWidget(self.__folders_group_box, 2)
-
-        self.__folders_list.setSpacing(2)
-        self.__folders_group_box_layout.addWidget(self.__folders_list)
-
-        self.__buttons_layout.setSpacing(6)
-        self.__remove_button.setEnabled(False)
-
-        self.__buttons_layout.addWidget(self.__add_button, 3)
-        self.__buttons_layout.addWidget(self.__remove_button, 2)
-        self.__folders_group_box_layout.addLayout(self.__buttons_layout)
-
-    def __init_formats_group_box(self):
-        self.__formats_group_box.setFixedWidth(100)
-        formats_group_layout = QVBoxLayout()
-        formats_group_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        formats_group_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        formats_group_layout.setSpacing(12)
-
-        self.__formats_group_box.setLayout(formats_group_layout)
-        self.__group_boxes_layout.addWidget(self.__formats_group_box, 1)
-
-        for file_format in ALLOWED_FILE_FORMATS:
-            self.__formats_check_boxes[file_format] = QCheckBox(file_format)
-            self.__formats_check_boxes[file_format].setChecked(True)
-            formats_group_layout.addWidget(self.__formats_check_boxes[file_format])
-
-    def __connect_event_handlers(self):
+        #region Connect event handlers
+        self.__connect_event_handlers()
         self.__add_button.clicked.connect(self.__on_add_button_click)
         self.__remove_button.clicked.connect(self.__on_remove_button_click)
         self.__folders_list.itemSelectionChanged.connect(self.__on_folders_list_item_changed)
         self.__search_button.clicked.connect(self.__on_search_button_clicked)
+        #endregion
+
+        #region Initial state setup
+        self.__on_folders_list_item_changed()
+        #endregion
 
     def __on_add_button_click(self):
         folder_path = QFileDialog.getExistingDirectory(self, 'Выберите папку')
@@ -198,7 +206,6 @@ class MainWindow(QMainWindow):
     def __show_duplicates_window(self, duplicates_groups):
         self.__duplicates_window = DuplicatesWindow(self, duplicates_groups)
         self.__duplicates_window.show()
-
 
     def __get_formats_filter(self):
         formats = [key for key, value in self.__formats_check_boxes.items() if value.isChecked()]

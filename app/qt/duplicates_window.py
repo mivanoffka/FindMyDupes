@@ -22,14 +22,22 @@ class DuplicatesWindow(QDialog):
         self.__duplicates_groups_origin = result
         self.__duplicates_groups_filtered = self.__duplicates_groups_origin
 
+        self.__init_ui()
+
+    def __init_ui(self):
+        #region Main widget and layout setup
         self.__main_widget = QWidget()
         self.__main_layout = QVBoxLayout()
         self.__main_layout.setSpacing(8)
         self.setLayout(self.__main_layout)
+        #endregion
 
+        #region Search text box
         self.__search_text_box = QLineEdit()
         self.__search_text_box.setPlaceholderText("Имя файла")
+        #endregion
 
+        #region Duplicates group box
         self.__duplicates_group_box = QGroupBox("Группы дубликатов")
         self.__main_layout.addWidget(self.__duplicates_group_box)
 
@@ -38,7 +46,9 @@ class DuplicatesWindow(QDialog):
 
         self.__duplicates_tree_view = QTreeWidget()
         self.__duplicates_group_box_layout.addWidget(self.__duplicates_tree_view)
+        #endregion
 
+        #region Full names checkbox
         self.__full_names_checkbox = QCheckBox("Полные имена файлов")
         self.__full_names_checkbox_layout = QHBoxLayout()
         self.__full_names_checkbox_layout.addWidget(self.__full_names_checkbox)
@@ -46,16 +56,12 @@ class DuplicatesWindow(QDialog):
         self.__full_names_checkbox.checkStateChanged.connect(self.__refresh_tree_view)
         self.__duplicates_group_box_layout.addLayout(self.__full_names_checkbox_layout)
         self.__full_names_checkbox_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        #endregion
 
+        #region Search group box
         self.__search_group_box = QGroupBox("Поиск группы по имени файла")
         self.__search_group_box.setFixedHeight(105)
         self.__main_layout.addWidget(self.__search_group_box)
-
-        self.__search_button = QPushButton("Поиск")
-        self.__reset_button = QPushButton("Сброс")
-
-        self.__search_button.clicked.connect(self.__on_search_button_clicked)
-        self.__reset_button.clicked.connect(self.__on_reset_button_clicked)
 
         self.__search_group_box_layout = QVBoxLayout()
         self.__search_group_box.setLayout(self.__search_group_box_layout)
@@ -65,19 +71,35 @@ class DuplicatesWindow(QDialog):
         self.__search_field_layout.addWidget(self.__search_text_box, 4)
         self.__search_group_box_layout.setSpacing(0)
         self.__search_field_layout.setSpacing(0)
+        #endregion
+
+        #region Search and reset buttons
+        self.__search_button = QPushButton("Поиск")
+        self.__reset_button = QPushButton("Сброс")
+
+        self.__search_button.clicked.connect(self.__on_search_button_clicked)
+        self.__reset_button.clicked.connect(self.__on_reset_button_clicked)
 
         self.__search_buttons_layout = QHBoxLayout()
         self.__search_buttons_layout.setSpacing(2)
         self.__search_group_box_layout.addLayout(self.__search_buttons_layout)
         self.__search_buttons_layout.addWidget(self.__search_button, 2)
         self.__search_buttons_layout.addWidget(self.__reset_button, 1)
+        #endregion
 
+        #region Duplicates tree view configuration
         self.__duplicates_tree_view.setColumnCount(1)
         self.__duplicates_tree_view.setHeaderHidden(True)
+        #endregion
 
+        #region Refresh tree view
         self.__refresh_tree_view()
+        #endregion
+
+        #region Window title and size
         self.setWindowTitle("Результаты поиска")
         self.setFixedSize(350, 450)
+        #endregion
 
     def __on_reset_button_clicked(self):
         self.__search_text_box.setText("")
