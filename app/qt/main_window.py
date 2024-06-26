@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import *
 from dupes import DupeFinderByHash, DupeFinderByHashMultiThread
 from dupes.exceptions import *
 from dupes.utility.image_folder import ALLOWED_FILE_FORMATS, ImageFolder
+from .duplicates_window import DuplicatesWindow
 
 from .utility import display_message, ProgressDisplay
 from .progress_window import ProgressWindow
@@ -16,6 +17,7 @@ class MainWindow(QMainWindow):
     __folders_paths: list[str]
     __os = platform.system()
     __username = getpass.getuser()
+    __duplicates_windows = []
 
     DEFAULT_PICTURES_PATHS = {
         "Darwin": "Users/{}/Pictures"
@@ -186,11 +188,17 @@ class MainWindow(QMainWindow):
 
             count = len(result[0])
             duration = round(result[1].total_seconds(), 1)
-
+            action_on_closed = (lambda: self.__show_duplicates_window(result[0])) if count > 0 else None
             message = f"Найдено {count} групп(ы) дубликатов.\r\n\r\n Поиск занял {duration} c. "\
                 if len(result) > 0 else f"Дубликатов не найдено.\r\n\r\n Поиск занял {duration} c. "
             title = "Поиск завершён!"
-            display_message(message, title)
+            display_message(message, title, action_on_closed)
+            self.result = result[0]
+
+    def __show_duplicates_window(self, duplicates_groups):
+        self.__duplicates_window = DuplicatesWindow(self, duplicates_groups)
+        self.__duplicates_window.show()
+
 
     def __get_formats_filter(self):
         formats = [key for key, value in self.__formats_check_boxes.items() if value.isChecked()]

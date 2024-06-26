@@ -2,10 +2,11 @@ from PyQt6.QtWidgets import QMessageBox
 import traceback
 
 
-def display_message(message: str, title="Сообщение"):
+def display_message(message: str, title="Сообщение", action_on_closed=None):
     msgBox = QMessageBox()
     msgBox.setText(title)
     msgBox.setInformativeText(message)
+    msgBox.finished.connect(action_on_closed)
     msgBox.setStandardButtons(QMessageBox.StandardButton.Close)
 
     ret = msgBox.exec()
