@@ -5,8 +5,11 @@ import time
 from typing import Optional, Any
 
 from dupes import ObservableTask
-from .utilities import send_data, receive_data
 from dupes.exceptions import NoPortsAvailableError, ServerNotStartedError
+import pickle
+import socket
+import struct
+from typing import Any
 
 
 class Server:
@@ -20,6 +23,24 @@ class Server:
     _commands_queue = []
     _process: subprocess.Popen
 
+    def send_data(self, the_socket: socket.socket, raw_response: Any):
+        if self._must_terminate:
+            return -1
+
+        response = pickle.dumps(raw_response)
+        response_length = len(response)
+
+        the_socket.send(struct.pack('>Q', response_length))
+        the_socket.send(response)
+
+    def receive_data(self, the_socket: socket.socket):
+        if self._must_terminate:
+            return -1
+
+        request_length = struct.unpack('>Q', the_socket.recv(8))[0]
+        response = the_socket.recv(request_length)
+
+        return pickle.loads(response)
 
     @property
     def address(self):
@@ -41,12 +62,19 @@ class Server:
 
     def _listening_loop(self):
         while not self._must_terminate:
-            client_socket, client_address = self._socket.accept()
-            threading.Thread(target=self._handle_client, args=(client_socket,)).start()
+            try:
+                client_socket, client_address = self._socket.accept()
+                threading.Thread(target=self._handle_client, args=(client_socket,)).start()
+            except:
+                pass
 
     def _handle_client(self, client_socket: socket.socket):
         try:
-            request = receive_data(client_socket)
+            request = self.receive_data(client_socket)
+
+            if request == -1:
+                return
+
             converted_request = request
             result = None
 
@@ -80,7 +108,10 @@ class Server:
             else:
                 result = "ERROR. UNKNOWN REQUEST TYPE."
 
-            send_data(client_socket, result)
+            result = self.send_data(client_socket, result)
+            if result == -1:
+                return
+
             client_socket.close()
 
         except Exception as error:

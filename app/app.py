@@ -13,7 +13,6 @@ class Application:
     __main_window: MainWindow
     __internal_server_process: subprocess.Popen
 
-
     def start(self):
         try:
             InternalServer().launch_process()
@@ -28,8 +27,6 @@ class Application:
             self.__app.exec()
         except Exception as error:
             display_detailed_error_message(error, "Произошла критическая ошибка!", )
-
-        InternalServer().communicate_with("TERMINATE")
 
 
 if __name__ == "__main__":

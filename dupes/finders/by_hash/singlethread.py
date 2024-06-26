@@ -94,7 +94,6 @@ class DupeFinderByHash(DupeFinder):
         return groups
 
     def execute(self):
-        self._progress_tracker.start()
         hashmaps = (self._get_hashmap(folder) for folder in self._image_folders)
 
         hashmap_unsorted = {}
@@ -137,6 +136,3 @@ class DupeFinderByHash(DupeFinder):
     def threshold(self) -> int:
         return 64 - int(self._precision * 64)
 
-    @property
-    def duration(self) -> timedelta:
-        return self._progress_tracker.duration

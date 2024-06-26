@@ -139,7 +139,6 @@ class MainWindow(QMainWindow):
         #endregion
 
         #region Connect event handlers
-        self.__connect_event_handlers()
         self.__add_button.clicked.connect(self.__on_add_button_click)
         self.__remove_button.clicked.connect(self.__on_remove_button_click)
         self.__folders_list.itemSelectionChanged.connect(self.__on_folders_list_item_changed)

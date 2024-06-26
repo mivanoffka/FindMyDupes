@@ -1,11 +1,12 @@
+import pickle
 import socket
+import struct
 import subprocess
 import threading
 import time
 from typing import Optional, Any
 
 from dupes import ObservableTask
-from .utilities import send_data, receive_data
 from dupes.exceptions import NoPortsAvailableError, ServerNotStartedError
 from py_singleton import singleton
 
@@ -15,6 +16,19 @@ class InternalServer:
     _process: subprocess.Popen
     _port: int = -1
     _MAX_IS_ALIVE_ATTEMPTS = 6
+
+    def send_data(self, the_socket: socket.socket, raw_response: Any):
+        response = pickle.dumps(raw_response)
+        response_length = len(response)
+
+        the_socket.send(struct.pack('>Q', response_length))
+        the_socket.send(response)
+
+    def receive_data(self, the_socket: socket.socket):
+        request_length = struct.unpack('>Q', the_socket.recv(8))[0]
+        response = the_socket.recv(request_length)
+
+        return pickle.loads(response)
 
     def is_port_in_use(self, port, host='127.0.0.1'):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -56,9 +70,9 @@ class InternalServer:
         if big_timeout:
             client.settimeout(99999)
 
-        send_data(client, data)
+        self.send_data(client, data)
 
-        result = receive_data(client)
+        result = self.receive_data(client)
 
         client.close()
 

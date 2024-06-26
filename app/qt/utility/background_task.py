@@ -53,7 +53,8 @@ class ProgressWorker(QObject):
     def run(self):
         while self.bg_worker.result is None:
             percentage = round(InternalServer().communicate_with("GET_PROGRESS") * 100, 1)
-            self.progress.emit(percentage)
+            if percentage >= 0:
+                self.progress.emit(percentage)
             time.sleep(0.1)
 
         print('finished!!!')
@@ -94,8 +95,8 @@ class BackgroundTaskWorker(BackgroundTaskWorkerDefinition):
         self.progress_worker.finished.connect(on_finish)
 
     def start(self):
-        self.progress_thread.start()
         self.bg_task_thread.start()
+        self.progress_thread.start()
 
 
 class ObservableTaskWorker(BackgroundTaskWorker):
