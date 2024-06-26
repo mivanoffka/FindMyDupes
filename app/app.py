@@ -9,6 +9,8 @@ from dupes import InternalServer
 from qt.main_window import MainWindow
 from qt.utility import display_detailed_error_message
 
+from config import BASE_DIR
+
 
 class Application:
     __app: QApplication
@@ -16,9 +18,9 @@ class Application:
     __internal_server_process: subprocess.Popen
 
     def set_stylesheet(self):
-        #if platform.system() == "Windows":
-        with open("assets/style/fluent_design.qss") as f:
-            self.__app.setStyleSheet(f.read())
+        if platform.system() == "Windows":
+            with open(str(BASE_DIR / "app/assets/style/fluent_design.qss")) as f:
+                self.__app.setStyleSheet(f.read())
 
     def start(self):
         try:
@@ -29,7 +31,7 @@ class Application:
             return
         try:
             self.__app = QApplication(sys.argv)
-            self.__app.setWindowIcon(QIcon("assets/dupes.png"))
+            self.__app.setWindowIcon(QIcon(str(BASE_DIR / "assets/dupes.png")))
             self.set_stylesheet()
             self.__main_window = MainWindow()
             self.__main_window.show()

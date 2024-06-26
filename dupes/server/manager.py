@@ -10,6 +10,7 @@ from dupes import ObservableTask
 from dupes.exceptions import NoPortsAvailableError, ServerNotStartedError
 from py_singleton import singleton
 
+from config import BASE_DIR
 
 @singleton
 class InternalServer:
@@ -49,7 +50,7 @@ class InternalServer:
         if self._port == -1:
             raise NoPortsAvailableError("No ports available in range [7800, 7899]")
 
-        self._process = subprocess.Popen(["python", "server_script.py", str(self._port)])
+        self._process = subprocess.Popen(["python", str(BASE_DIR / "app/server_script.py"), str(self._port)])
 
         for i in range(0, self._MAX_IS_ALIVE_ATTEMPTS):
             try:

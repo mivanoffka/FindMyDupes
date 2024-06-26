@@ -6,7 +6,8 @@ def display_message(message: str, title="Сообщение", action_on_closed=N
     msgBox = QMessageBox()
     msgBox.setText(title)
     msgBox.setInformativeText(message)
-    msgBox.finished.connect(action_on_closed)
+    if action_on_closed is not None:
+        msgBox.finished.connect(action_on_closed)
     msgBox.setStandardButtons(QMessageBox.StandardButton.Close)
 
     ret = msgBox.exec()
