@@ -18,9 +18,9 @@ class Application:
     __internal_server_process: subprocess.Popen
 
     def set_stylesheet(self):
-        # if platform.system() == "Windows":
-        #     with open(str(BASE_DIR / "app/assets/style/fluent_design.qss")) as f:
-        #         self.__app.setStyleSheet(f.read())
+        if platform.system() == "Windows":
+            with open(str(BASE_DIR / "app/assets/style.qss")) as f:
+                self.__app.setStyleSheet(f.read())
         ...
 
     def start(self):

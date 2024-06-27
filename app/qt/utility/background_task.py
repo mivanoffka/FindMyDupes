@@ -57,7 +57,6 @@ class ProgressWorker(QObject):
                 self.progress.emit(percentage)
             time.sleep(0.1)
 
-        print('finished!!!')
         self.progress.emit(100)
         time.sleep(0.1)
         self.finished.emit((self.bg_worker.result, self.bg_worker.duration))

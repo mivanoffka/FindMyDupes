@@ -22,27 +22,19 @@ from pathlib import Path
 import platform
 
 class InternalServer(metaclass=Singleton):
-    _process: subprocess.Popen
     _port: int = -1
     _MAX_IS_ALIVE_ATTEMPTS = 6
 
     def start_script(self):
         match platform.system():
             case "Windows":
-                if not ctypes.windll.shell32.IsUserAnAdmin():
-                    script = os.path.abspath(sys.argv[0])
-                    params = ' '.join([str(Path(__file__).parent / "script.py"), str(self._port)])
-                    try:
-                        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, f'{script} {params}', None, 1)
-                    except Exception as e:
-                        print(f"Failed to elevate privileges: {e}")
-                else:
-                    self._process = subprocess.Popen(
-                        [sys.executable, str(Path(__file__).parent / "script.py"), str(self._port)])
+                ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable,
+                                                    f'{str(Path(__file__).parent / "script.py")} {self._port}',
+                                                    None, 1)
 
             case "Darwin" | "Linux":
-                self._process = subprocess.Popen([sys.executable,
-                                                  str(BASE_DIR / "app/server_script.py"), str(self._port)])
+                subprocess.Popen([sys.executable,
+                                                  str(Path(__file__).parent / "script.py"), str(self._port)])
 
     def send_data(self, the_socket: socket.socket, raw_response: Any):
         response = pickle.dumps(raw_response)
@@ -76,10 +68,10 @@ class InternalServer(metaclass=Singleton):
         if self._port == -1:
             raise NoPortsAvailableError("No ports available in range [7800, 7899]")
 
-        #command = f'runas /user:Administrator "{sys.executable}  {str(BASE_DIR / "app/server_script.py")} {str(self._port)}"'
+        #command = f'runas /user:Administrator "{sys.executable}  {str(BASE_DIR / "app/script.py")} {str(self._port)}"'
         #self._process = subprocess.Popen(command, shell=True)
 
-
+        self.start_script()
 
         for i in range(0, self._MAX_IS_ALIVE_ATTEMPTS):
             try:
