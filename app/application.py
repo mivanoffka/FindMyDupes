@@ -6,8 +6,8 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
 
 from dupes import InternalServer
-from qt.main_window import MainWindow
-from qt.utility import display_detailed_error_message
+from .qt.main_window import MainWindow
+from .qt.utility import display_detailed_error_message
 
 from config import BASE_DIR
 
@@ -39,8 +39,3 @@ class Application:
             self.__app.exec()
         except Exception as error:
             display_detailed_error_message(error, "Произошла критическая ошибка!", )
-
-
-if __name__ == "__main__":
-    app = Application()
-    app.start()

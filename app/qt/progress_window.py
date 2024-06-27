@@ -43,6 +43,7 @@ class ProgressWindow(QDialog, ProgressDisplay):
         self.setLayout(self.__main_layout)
 
         self.__progress_bar = QProgressBar()
+        self.__progress_bar.setTextVisible(False)
         self.__progress_bar.setRange(0, 100)
         self.__percentage_label = QLabel("0%")
         self.__percentage_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
