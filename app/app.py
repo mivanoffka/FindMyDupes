@@ -18,9 +18,9 @@ class Application:
     __internal_server_process: subprocess.Popen
 
     def set_stylesheet(self):
-        if platform.system() == "Windows":
-            with open(str(BASE_DIR / "app/assets/style.qss")) as f:
-                self.__app.setStyleSheet(f.read())
+        # if platform.system() == "Windows":
+        #     with open(str(BASE_DIR / "app/assets/style.qss")) as f:
+        #         self.__app.setStyleSheet(f.read())
         ...
 
     def start(self):
@@ -32,7 +32,7 @@ class Application:
             return
         try:
             self.__app = QApplication(sys.argv)
-            self.__app.setWindowIcon(QIcon(str(BASE_DIR / "assets/dupes.png")))
+            self.__app.setWindowIcon(QIcon(str(BASE_DIR / "assets/icon.png")))
             self.set_stylesheet()
             self.__main_window = MainWindow()
             self.__main_window.show()
