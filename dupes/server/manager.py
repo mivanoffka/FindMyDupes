@@ -27,14 +27,7 @@ class InternalServer(metaclass=Singleton):
     _MAX_IS_ALIVE_ATTEMPTS = 6
 
     def start_script(self):
-        match platform.system():
-            case "Windows":
-                ctypes.windll.shell32.ShellExecuteW(
-                    None, "runas", sys.executable, f'{str(BASE_DIR / "app/server_script.py")} {self._port}', None, 1)
-
-            case "Darwin" | "Linux":
-                self._process = subprocess.Popen([sys.executable,
-                                                  str(BASE_DIR / "app/server_script.py"), str(self._port)])
+        self._process = subprocess.Popen([sys.executable, str(BASE_DIR / "script.py"), str(self._port)])
 
     def send_data(self, the_socket: socket.socket, raw_response: Any):
         response = pickle.dumps(raw_response)

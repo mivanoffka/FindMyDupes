@@ -1,21 +1,37 @@
+import ctypes
 import subprocess
 import sys
 import platform
+from pathlib import Path
 
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
 
-from dupes import InternalServer
 from .qt.main_window import MainWindow
 from .qt.utility import display_detailed_error_message
+
+from dupes import InternalServer
 
 from config import BASE_DIR
 
 
 class Application:
     __app: QApplication
-    __main_window: MainWindow
     __internal_server_process: subprocess.Popen
+    __main_window: MainWindow
+
+    def rerun_as_admin(self):
+        match platform.system():
+            case "Windows":
+                if not ctypes.windll.shell32.IsUserAnAdmin():
+                    ctypes.windll.shell32.ShellExecuteW(
+                        None, "runas", sys.executable, f'{BASE_DIR / "main.py"}', None, 1)
+                    sys.exit(0)
+                else:
+                    return
+
+            case "Darwin" | "Linux":
+                return
 
     def set_stylesheet(self):
         # if platform.system() == "Windows":
@@ -24,6 +40,8 @@ class Application:
         ...
 
     def start(self):
+        self.rerun_as_admin()
+        self.__app = QApplication(sys.argv)
         try:
             InternalServer().launch_process()
         except Exception as error:
@@ -31,7 +49,6 @@ class Application:
                                                   " из-за проблемы с запуском внутреннего сервера.", )
             return
         try:
-            self.__app = QApplication(sys.argv)
             self.__app.setWindowIcon(QIcon(str(BASE_DIR / "assets/icon.png")))
             self.set_stylesheet()
             self.__main_window = MainWindow()
