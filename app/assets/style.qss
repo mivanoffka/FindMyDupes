@@ -1,0 +1,101 @@
+QMainWindow {
+    background-color: #eeeeee;
+}
+
+QListWidget {
+    background-color: white;
+    border: none;
+    border-bottom: 1px solid #aeaeae; /* Граница группы */
+    border-radius: 3px; /* Скругленные углы */
+    margin: 4px;
+    padding: 1px;
+}
+
+QTextEdit {
+    background-color: white;
+    border: none;
+    border-bottom: 1px solid #aeaeae; /* Граница группы */
+    border-radius: 3px; /* Скругленные углы */
+    margin: 4px;
+    padding: 1px;
+}
+
+QPushButton {
+    background-color: white;
+    border: none;
+    border-bottom: 1px solid #aeaeae; /* Граница группы */
+    border-radius: 3px; /* Скругленные углы */
+    margin: 4px;
+    padding: 1px;
+
+}
+
+QPushButton::hover {
+    border-bottom: 1px solid #0078d7; /* Граница группы */
+    background-color: #f5f9ff;
+}
+
+QPushButton::disabled {
+    color: gray;
+    background-color: #f0f0f0;
+    border: none;
+    border-bottom: 1px solid #aeaeae; /* Граница группы */
+    border-radius: 3px; /* Скругленные углы */
+    margin: 3px;
+    padding: 1px;
+
+}
+
+QPushButton::pressed {
+   background-color: #ebf2fc;
+
+}
+
+QGroupBox {
+    border: none;
+    border-bottom: 1px solid #aeaeae; /* Граница группы */
+    background-color: #dddddd;
+    border-radius: 4px; /* Скругленные углы */
+    margin-top: 9px; /* Отступ сверху */
+    padding: 4px
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left; /* Позиция заголовка */
+    padding: 0 5px; /* Внутренние отступы */
+    color: black; /* Цвет текста заголовка */
+    font-size: 14px; /* Размер шрифта */
+}
+
+QCheckBox {
+    spacing: 5px; /* Расстояние между флажком и текстом */
+}
+
+QCheckBox::indicator {
+    width: 12px; /* Ширина флажка */
+    height: 12px; /* Высота флажка */
+    border-radius: 2px; /* Скругленные углы */
+}
+
+QCheckBox::indicator:unchecked {
+    border: 1px solid gray; /* Граница флажка */
+    background-color: #f0f0f0; /* Цвет фона флажка */
+}
+
+QCheckBox::indicator:unchecked:hover {
+    border: 1px solid #005a9e; /* Граница флажка при наведении */
+}
+
+QCheckBox::indicator:checked {
+    border: 1px solid #0078d7; /* Граница флажка */
+    background-color: #0078d7; /* Цвет фона флажка */
+    border-bottom: 1px solid #001263; /* Граница группы */
+    image: url(D:/Documents/12.23/Python/FindMyDupes/app/assets/check-mark-white.svg);
+}
+
+
+QCheckBox::indicator:checked:hover {
+    border: 1px solid #005a9e; /* Граница флажка при наведении */
+    background-color: #005a9e; /* Цвет фона флажка при наведении */
+}

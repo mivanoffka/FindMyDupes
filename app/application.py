@@ -4,8 +4,9 @@ import sys
 import platform
 from pathlib import Path
 
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import Qt
 
 from .qt.main_window import MainWindow
 from .qt.utility import display_detailed_error_message
@@ -34,10 +35,9 @@ class Application:
                 return
 
     def set_stylesheet(self):
-        # if platform.system() == "Windows":
-        #     with open(str(BASE_DIR / "app/assets/style.qss")) as f:
-        #         self.__app.setStyleSheet(f.read())
-        ...
+        if platform.system() == "Windows":
+            with open(str(BASE_DIR / "app/assets/style.qss")) as f:
+                self.__app.setStyleSheet(f.read())
 
     def start(self):
         self.rerun_as_admin()
@@ -56,3 +56,5 @@ class Application:
             self.__app.exec()
         except Exception as error:
             display_detailed_error_message(error, "Произошла критическая ошибка!", )
+
+        InternalServer().communicate_with("TERMINATE")
