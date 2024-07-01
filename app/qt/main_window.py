@@ -192,6 +192,10 @@ class MainWindow(QMainWindow):
     def __on_search_finished(self):
         result = self.__searching_window.execution_result
         if result is not None:
+            if isinstance(result[0], Exception):
+                display_message(f"Не удалось выполнить поиск.\n\n{result[0]}", "Ошибка", None)
+                return
+
 
             count = len(result[0])
             duration = round(result[1].total_seconds(), 1)

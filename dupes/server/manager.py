@@ -21,7 +21,8 @@ import subprocess
 from pathlib import Path
 import platform
 
-class InternalServer(metaclass=Singleton):
+
+class InternalServerManager(metaclass=Singleton):
     _process: subprocess.Popen
     _port: int = -1
     _MAX_IS_ALIVE_ATTEMPTS = 6
@@ -50,7 +51,7 @@ class InternalServer(metaclass=Singleton):
                 return True
             return False
 
-    def launch_process(self):
+    def launch(self):
         ports_to_try = (i for i in range(7800, 7900))
 
         for port_to_try in ports_to_try:
@@ -68,13 +69,15 @@ class InternalServer(metaclass=Singleton):
                 self.communicate_with("IS_ALIVE")
             except Exception as error:
                 if i >= self._MAX_IS_ALIVE_ATTEMPTS - 1:
-                    raise ServerNotStartedError()
+                    raise ServerNotStartedError("No information can be provided here. Go to server logs.")
                 else:
                     time.sleep(0.5)
                 continue
             break
 
-    def communicate_with(self, data: Any, big_timeout=False):
+        return self._port
+
+    def communicate_with(self, data: Any, big_timeout=False, dont_wait_for_response=False):
         result = (None, )
 
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -83,6 +86,9 @@ class InternalServer(metaclass=Singleton):
             client.settimeout(99999)
 
         self.send_data(client, data)
+        if dont_wait_for_response:
+            client.close()
+            return
 
         result = self.receive_data(client)
 

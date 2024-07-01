@@ -5,7 +5,7 @@ from datetime import timedelta, datetime
 
 from PySide6.QtCore import Signal, QObject
 
-from dupes import InternalServer
+from dupes import InternalServerManager
 from dupes import ObservableTask
 from . import ProgressDisplay
 from .utilities import display_message
@@ -52,7 +52,7 @@ class ProgressWorker(QObject):
 
     def run(self):
         while self.bg_worker.result is None:
-            percentage = round(InternalServer().communicate_with("GET_PROGRESS") * 100, 1)
+            percentage = round(InternalServerManager().communicate_with("GET_PROGRESS") * 100, 1)
             if percentage >= 0:
                 self.progress.emit(percentage)
             time.sleep(0.1)
@@ -117,7 +117,7 @@ class ObservableTaskWorker(BackgroundTaskWorker):
 
     def execute(self):
         self._start_time = datetime.now()
-        result = InternalServer().communicate_with(self.task, True)
+        result = InternalServerManager().communicate_with(self.task, True)
         self._finish_time = datetime.now()
 
         return result

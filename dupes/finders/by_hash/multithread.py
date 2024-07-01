@@ -35,7 +35,7 @@ class DupeFinderByHashMultiThread(DupeFinderByHash):
             try:
                 hmp[path] = phash(Image.open(path))
             except Exception as error:
-                self._log_to_report(f"Could not open or process '{path}'")
+                self._progress_tracker.log_to_report(f"Could not open or process '{path}'")
 
             self._progress_tracker.current_value += self._hashing_progress_delta
 

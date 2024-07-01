@@ -4,15 +4,6 @@ from typing import Any
 
 
 class ObservableTask:
-    __report: list[str]
-
-    def _log_to_report(self, message: str):
-        self.__report.append(message)
-
-    @property
-    def report(self) -> tuple:
-        return tuple(self.__report)
-
     @abstractmethod
     def execute(self) -> Any:
         raise NotImplementedError()

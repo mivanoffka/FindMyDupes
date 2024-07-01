@@ -1,6 +1,19 @@
+import logging
+
+
 class ProgressTracker:
     __aim_value: float
     __current_value: float = 0
+
+    __report: list[str] = []
+
+    def log_to_report(self, message: str):
+        logging.warning(message)
+        self.__report.append(message)
+
+    @property
+    def report(self) -> tuple:
+        return tuple(self.__report)
 
     @property
     def aim_value(self):
@@ -25,7 +38,7 @@ class ProgressTracker:
 
     def __set_aim_value(self, aim_value: float):
         if aim_value <= 0:
-            raise ValueError("Aim value must be greater than zer0")
+            raise ValueError("Aim value must be greater than zero")
 
         self.__aim_value = aim_value
 

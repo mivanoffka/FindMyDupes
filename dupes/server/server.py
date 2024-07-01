@@ -1,3 +1,4 @@
+import logging
 import socket
 import subprocess
 import threading
@@ -10,6 +11,7 @@ import pickle
 import socket
 import struct
 from typing import Any
+from logger import Logger
 
 
 class Server:
@@ -17,6 +19,7 @@ class Server:
     _socket: socket.socket
     _ip: str
     _port: int
+    _logger: Logger
 
     _must_terminate = False
 
@@ -52,12 +55,19 @@ class Server:
     def __init__(self, ip: Optional[str] = None, port: Optional[int] = None):
         self._ip = ip if ip is not None else "0.0.0.0"
         self._port = port if port is not None else 9999
+        self._logger = Logger("app/logs/server")
 
     def launch(self):
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._socket.bind(self.address)
-        self._socket.listen(16)
+        self._logger.setup()
 
+        try:
+            self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._socket.bind(self.address)
+            self._socket.listen(16)
+        except Exception as error:
+            logging.error(f"Failed to bind to {self._ip}:{self._port}: {error}")
+
+        logging.info("Server started on {}".format(self._port))
         self._listening_loop()
 
     def _listening_loop(self):
@@ -69,6 +79,8 @@ class Server:
                 pass
 
     def _handle_client(self, client_socket: socket.socket):
+        logging.info("Accepted client connection.")
+
         try:
             request = self.receive_data(client_socket)
 
@@ -87,7 +99,7 @@ class Server:
                         result = task.execute()
                     except Exception as err:
                         print(err)
-                        result = -1
+                        result = err
                     self._executing_task = None
                 else:
                     result = "ERROR. THE SERVER IS BUSY"
@@ -103,8 +115,6 @@ class Server:
                 if converted_request == "TERMINATE":
                     self._socket.close()
                     self._must_terminate = True
-
-
             else:
                 result = "ERROR. UNKNOWN REQUEST TYPE."
 
