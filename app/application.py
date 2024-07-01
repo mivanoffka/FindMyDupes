@@ -8,7 +8,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 from config import BASE_DIR
-from dupes import InternalServerManager
+from server import InternalServerManager
 from logger import Logger
 from .qt.main_window import MainWindow
 from .qt.utility import display_detailed_error_message

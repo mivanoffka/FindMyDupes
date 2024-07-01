@@ -5,7 +5,7 @@ from datetime import timedelta, datetime
 
 from PySide6.QtCore import Signal, QObject
 
-from dupes import InternalServerManager
+from server import InternalServerManager
 from dupes import ObservableTask
 from . import ProgressDisplay
 from .utilities import display_message

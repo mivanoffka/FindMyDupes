@@ -1,2 +1,2 @@
 from .manager import InternalServerManager
-from .server import Server
+from .internalserver import InternalServer

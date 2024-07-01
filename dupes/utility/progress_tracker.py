@@ -2,6 +2,8 @@ import logging
 
 
 class ProgressTracker:
+    """Objects of this class are meant to be included in OBSERVABLE TASKS in order to simplify progress tracking"""
+
     __aim_value: float
     __current_value: float = 0
 

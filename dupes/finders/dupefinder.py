@@ -5,6 +5,8 @@ from dupes.utility.observable_task import ObservableTask
 
 
 class DupeFinder(ObservableTask):
+    """ Base class for performing duplicates searching """
+
     _image_folders: tuple[ImageFolder]
     _precision: float
 

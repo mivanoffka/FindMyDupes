@@ -6,6 +6,11 @@ ALLOWED_FILE_FORMATS: tuple = ("*.jpg", "*.png", "*.bmp", "*.tiff", "*.gif", "*.
 
 
 class ImageFolder:
+    """
+    A class to contain information about the folder to observe and which files to select using FILE FORMATS FILTER.
+    If you want to extract all possible file formats (specified in ALLOWED_FILE_FORMATS), set the filter to NONE
+    """
+
     _folder_path: str
     _file_formats_filter = Optional[list[str]]
 
@@ -23,7 +28,10 @@ class ImageFolder:
         self._file_formats_filter = value
 
     @property
-    def selected_file_formats(self) -> tuple[str]:
+    def _selected_file_formats(self) -> tuple[str]:
+        """
+        Only returns formats that match both FILE_FORMATS_FILTER and ALLOWED_FILE_FORMAT
+        """
         selected_file_formats = []
         if self._file_formats_filter is None:
             selected_file_formats = ALLOWED_FILE_FORMATS
@@ -40,9 +48,12 @@ class ImageFolder:
 
     @property
     def file_paths(self) -> tuple[Path, ...]:
+        """
+        Returns paths to all the files that match FILE FORMAT FILTER
+        """
         file_paths = []
 
-        for file_format in self.selected_file_formats:
+        for file_format in self._selected_file_formats:
             file_paths.extend(list(Path(self._folder_path).glob(file_format)))
 
         return tuple(file_paths)

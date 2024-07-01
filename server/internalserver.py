@@ -14,7 +14,14 @@ from typing import Any
 from logger import Logger
 
 
-class Server:
+class InternalServer:
+    """
+    Internal server for executing OBSERVABLE TASKS in an independent process
+    without interfering GUI multiprocessing/threading.
+    Objects of this class are not meant to be created manually,
+    use INTERNAL SERVER MANAGER to launch server
+    """
+
     _executing_task: Optional[ObservableTask] = None
     _socket: socket.socket
     _ip: str
