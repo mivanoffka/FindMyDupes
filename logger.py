@@ -1,7 +1,5 @@
 import logging
 import tarfile
-import threading
-import time
 from datetime import datetime, timedelta
 from config import BASE_DIR
 

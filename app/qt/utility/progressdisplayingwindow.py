@@ -4,8 +4,7 @@ from typing import Any
 from PySide6.QtCore import QThread
 
 
-class ProgressDisplay:
-
+class ProgressDisplayingWindow:
     @abstractmethod
     def update_progress(self, progress_value):
         raise NotImplementedError()

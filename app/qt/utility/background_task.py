@@ -7,7 +7,7 @@ from PySide6.QtCore import Signal, QObject
 
 from server import InternalServerManager
 from dupes import ObservableTask
-from . import ProgressDisplay
+from . import ProgressDisplayingWindow
 from .utilities import display_message
 
 
@@ -52,7 +52,7 @@ class ProgressWorker(QObject):
 
     def run(self):
         while self.bg_worker.result is None:
-            percentage = round(InternalServerManager().communicate_with("GET_PROGRESS") * 100, 1)
+            percentage = round(InternalServerManager().get_current_task_progress() * 100, 1)
             if percentage >= 0:
                 self.progress.emit(percentage)
             time.sleep(0.1)
@@ -65,7 +65,7 @@ class ProgressWorker(QObject):
 class BackgroundTaskWorker(BackgroundTaskWorkerDefinition):
     progress_worker: ProgressWorker
 
-    def __init__(self, progressable: ProgressDisplay):
+    def __init__(self, progressable: ProgressDisplayingWindow):
         bg_task_thread = progressable.task_thread
         progress_thread = progressable.progress_thread
         gui_progress_updater = progressable.update_progress
@@ -103,7 +103,7 @@ class ObservableTaskWorker(BackgroundTaskWorker):
     _finish_time: datetime
     task: ObservableTask
 
-    def __init__(self, task: ObservableTask, progressable: ProgressDisplay):
+    def __init__(self, task: ObservableTask, progressable: ProgressDisplayingWindow):
         super().__init__(progressable)
         self.task = task
 
@@ -117,7 +117,7 @@ class ObservableTaskWorker(BackgroundTaskWorker):
 
     def execute(self):
         self._start_time = datetime.now()
-        result = InternalServerManager().communicate_with(self.task, True)
+        result = InternalServerManager().execute_task(self.task)
         self._finish_time = datetime.now()
 
         return result

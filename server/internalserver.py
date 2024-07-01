@@ -33,7 +33,7 @@ class InternalServer:
     _commands_queue = []
     _process: subprocess.Popen
 
-    def send_data(self, the_socket: socket.socket, raw_response: Any):
+    def _send_data(self, the_socket: socket.socket, raw_response: Any):
         if self._must_terminate:
             return -1
 
@@ -43,7 +43,7 @@ class InternalServer:
         the_socket.send(struct.pack('>Q', response_length))
         the_socket.send(response)
 
-    def receive_data(self, the_socket: socket.socket):
+    def _receive_data(self, the_socket: socket.socket):
         if self._must_terminate:
             return -1
 
@@ -86,10 +86,8 @@ class InternalServer:
                 pass
 
     def _handle_client(self, client_socket: socket.socket):
-        logging.info("Accepted client connection.")
-
         try:
-            request = self.receive_data(client_socket)
+            request = self._receive_data(client_socket)
 
             if request == -1:
                 return
@@ -112,7 +110,7 @@ class InternalServer:
                     result = "ERROR. THE SERVER IS BUSY"
 
             elif isinstance(converted_request, str):
-                if converted_request == "GET_PROGRESS":
+                if converted_request == "PROGRESS":
                     if self._executing_task is not None:
                         result = self._executing_task.progress
                     else:
@@ -125,7 +123,7 @@ class InternalServer:
             else:
                 result = "ERROR. UNKNOWN REQUEST TYPE."
 
-            result = self.send_data(client_socket, result)
+            result = self._send_data(client_socket, result)
             if result == -1:
                 return
 

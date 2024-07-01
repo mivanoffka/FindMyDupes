@@ -5,13 +5,13 @@ from PySide6.QtWidgets import *
 
 from PySide6.QtCore import QThread
 
-from .utility import ProgressDisplay
+from .utility import ProgressDisplayingWindow
 from dupes import ObservableTask
 
 from .utility import ObservableTaskWorker
 
 
-class ProgressWindow(QDialog, ProgressDisplay):
+class ProgressWindow(QDialog, ProgressDisplayingWindow):
     __task: ObservableTask
     __finding_result: Optional[list] = None
     __execution_result: Any = None

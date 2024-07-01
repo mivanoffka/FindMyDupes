@@ -3,11 +3,12 @@ import platform
 import subprocess
 import sys
 import threading
+from pathlib import Path
 
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
-from config import BASE_DIR
+from config import BASE_DIR, SAME_STYLE_FOR_ANY_PLATFORM
 from server import InternalServerManager
 from logger import Logger
 from .qt.main_window import MainWindow
@@ -36,12 +37,12 @@ class Application:
                 return
 
     def set_stylesheet(self):
-        if platform.system() == "Windows":
+        if platform.system() == "Windows" or SAME_STYLE_FOR_ANY_PLATFORM:
             with open(str(BASE_DIR / "app/assets/style.qss")) as f:
                 self.__app.setStyleSheet(f.read())
 
     def finish(self):
-        InternalServerManager().communicate_with("TERMINATE", dont_wait_for_response=True)
+        InternalServerManager().terminate()
 
     def start(self):
         self.rerun_as_admin()
@@ -66,7 +67,7 @@ class Application:
             return
 
         try:
-            self.__app.setWindowIcon(QIcon(str(BASE_DIR / "assets/icon.png")))
+            self.__app.setWindowIcon(QIcon(str(Path(__file__).parent / "assets/icon.png")))
             self.set_stylesheet()
             self.__main_window = MainWindow()
             self.__main_window.show()

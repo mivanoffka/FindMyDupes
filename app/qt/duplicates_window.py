@@ -7,7 +7,7 @@ from PySide6.QtWidgets import *
 
 from PySide6.QtCore import QThread
 
-from .utility import ProgressDisplay
+from .utility import ProgressDisplayingWindow
 from dupes import ObservableTask
 
 from .utility import ObservableTaskWorker

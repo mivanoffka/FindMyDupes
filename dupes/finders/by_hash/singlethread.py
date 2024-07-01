@@ -1,16 +1,20 @@
 import copy
-from datetime import timedelta
 from pathlib import Path
 
 from PIL import Image
 from imagehash import ImageHash, phash
 
+from dupes.exceptions import *
 from dupes.finders.dupefinder import DupeFinder
 from dupes.utility.progress_tracker import ProgressTracker
-from dupes.exceptions import *
 
 
 class DupeFinderByHash(DupeFinder):
+
+    """
+    A DupeFinder implementation that is able to indentify duplicates by comparing images' perceptual hashes
+    """
+
     _progress_tracker: ProgressTracker
 
     _hashing_progress_delta: float
@@ -24,7 +28,7 @@ class DupeFinderByHash(DupeFinder):
             try:
                 hashmap[path] = phash(Image.open(path))
             except Exception as error:
-                self._progress_tracker.log_to_report(f"Could not open or process '{path}'")
+                self._progress_tracker.log_to_report(f"Could not open or process '{path}': {error}")
 
             self._progress_tracker.current_value += self._hashing_progress_delta
 
@@ -134,5 +138,11 @@ class DupeFinderByHash(DupeFinder):
 
     @property
     def threshold(self) -> int:
+
+        """
+        Precision converted to range (0, 64). Perceptual hashes difference is defined as Hamming distance, which
+        shows how many of 64 bits of the hash value are equal.
+        """
+
         return 64 - int(self._precision * 64)
 

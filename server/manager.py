@@ -7,6 +7,7 @@ import time
 from typing import Any
 
 from config import BASE_DIR
+from dupes import ObservableTask
 from dupes.exceptions import NoPortsAvailableError, ServerNotStartedError
 from .singleton import Singleton
 
@@ -59,19 +60,14 @@ class InternalServerManager(metaclass=Singleton):
         self._launch_script()
 
         for i in range(0, self._MAX_IS_ALIVE_ATTEMPTS):
-            try:
-                self.communicate_with("IS_ALIVE")
-            except Exception as error:
-                if i >= self._MAX_IS_ALIVE_ATTEMPTS - 1:
-                    raise ServerNotStartedError("No information can be provided here. Go to server logs.")
-                else:
-                    time.sleep(0.5)
-                continue
-            break
+            if self.is_alive():
+                return self._port
+            else:
+                time.sleep(0.5)
 
-        return self._port
+        raise ServerNotStartedError("No information can be provided here. Go to server logs.")
 
-    def communicate_with(self, data: Any, big_timeout=False, dont_wait_for_response=False):
+    def _communicate_with(self, data: Any, big_timeout=False, dont_wait_for_response=False):
         result = (None, )
 
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -89,3 +85,20 @@ class InternalServerManager(metaclass=Singleton):
         client.close()
 
         return result
+
+    def terminate(self):
+        return self._communicate_with("TERMINATE", dont_wait_for_response=True)
+
+    def execute_task(self, task: ObservableTask) -> Any:
+        return self._communicate_with(task, big_timeout=True)
+
+    def get_current_task_progress(self) -> float:
+        return self._communicate_with("PROGRESS")
+
+    def is_alive(self) -> bool:
+        try:
+            self._communicate_with("IS_ALIVE")
+        except:
+            return False
+
+        return True

@@ -9,7 +9,7 @@ from dupes.exceptions import *
 from dupes.utility.image_folder import ALLOWED_FILE_FORMATS, ImageFolder
 from .duplicates_window import DuplicatesWindow
 
-from .utility import display_message, ProgressDisplay
+from .utility import display_message, ProgressDisplayingWindow
 from .progress_window import ProgressWindow
 
 
