@@ -8,11 +8,11 @@ from pathlib import Path
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
-from config import BASE_DIR, SAME_STYLE_FOR_ANY_PLATFORM
+from config import BASE_DIR, FORCE_WINDOWS_STYLESHEET
 from server import InternalServerManager
 from logger import Logger
 from .qt.main_window import MainWindow
-from .qt.utility import display_detailed_error_message
+from .qt.utility import MessageWindow
 
 import logging
 
@@ -37,7 +37,7 @@ class Application:
                 return
 
     def set_stylesheet(self):
-        if platform.system() == "Windows" or SAME_STYLE_FOR_ANY_PLATFORM:
+        if platform.system() == "Windows" or FORCE_WINDOWS_STYLESHEET:
             with open(str(BASE_DIR / "app/assets/style.qss")) as f:
                 self.__app.setStyleSheet(f.read())
 
@@ -48,6 +48,7 @@ class Application:
         self.rerun_as_admin()
 
         self.__app = QApplication(sys.argv)
+        self.__main_window = MainWindow()
 
         self.__logger = Logger("app/logs/client")
         self.__logger.setup()
@@ -61,19 +62,18 @@ class Application:
                 raise ServerNotStartedError("No information can be provided here. Go to server logs.")
         except Exception as error:
             logging.error("Failed to start internal server: " + str(error))
-            display_detailed_error_message(error, "Приложение не удалось запустить"
-                                                  " из-за проблемы с запуском внутреннего сервера.", )
+            MessageWindow.display_error("Приложение не удалось запустить"
+                                        " из-за проблемы с запуском внутреннего сервера.", )
             self.finish()
             return
 
         try:
             self.__app.setWindowIcon(QIcon(str(Path(__file__).parent / "assets/icon.png")))
             self.set_stylesheet()
-            self.__main_window = MainWindow()
             self.__main_window.show()
             self.__app.exec()
         except Exception as error:
-            display_detailed_error_message(error, "Произошла критическая ошибка!", )
+            MessageWindow.display_error("Произошла критическая ошибка!", )
 
         self.finish()
 

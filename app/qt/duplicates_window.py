@@ -11,10 +11,13 @@ from .utility import ProgressDisplayingWindow
 from dupes import ObservableTask
 
 from .utility import ObservableTaskWorker
+from .view_window import ViewWindow
 
 
 class DuplicatesWindow(QDialog):
     __duplicates_groups_filtered: list
+    __view_windows = []
+    __names_and_full_names = {}
 
     def __init__(self, parent, result: list):
         super().__init__(parent=parent)
@@ -43,8 +46,8 @@ class DuplicatesWindow(QDialog):
 
         self.__duplicates_group_box_layout = QVBoxLayout()
         self.__duplicates_group_box.setLayout(self.__duplicates_group_box_layout)
-
         self.__duplicates_tree_view = QTreeWidget()
+        self.__duplicates_tree_view.itemDoubleClicked.connect(self.__on_dupicates_tree_view_double_clicked)
         self.__duplicates_group_box_layout.addWidget(self.__duplicates_tree_view)
         #endregion
 
@@ -89,7 +92,16 @@ class DuplicatesWindow(QDialog):
 
         #region Duplicates tree view configuration
         self.__duplicates_tree_view.setColumnCount(1)
-        self.__duplicates_tree_view.setHeaderHidden(True)
+        self.__duplicates_tree_view.setHeaderLabel("Дважды нажмите на файл, чтобы открыть его")
+        header = self.__duplicates_tree_view.header()
+        header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)  # Пример выравнивания по центру
+
+        # Устанавливаем цвет фона и текста заголовка через стили CSS
+        header.setStyleSheet("""
+            color: gray;
+            font-size: 11px;
+        """)
+        #self.__duplicates_tree_view.setHeaderHidden(True)
         #endregion
 
         #region Refresh tree view
@@ -118,6 +130,7 @@ class DuplicatesWindow(QDialog):
         self.__refresh_tree_view()
 
     def __refresh_tree_view(self):
+        self.__names_and_full_names = {}
         show_full_names = self.__full_names_checkbox.isChecked()
 
         self.__duplicates_tree_view.clear()
@@ -129,9 +142,17 @@ class DuplicatesWindow(QDialog):
             for file in group:
                 file: Path = file
                 item = QTreeWidgetItem(tree_group)
+                self.__names_and_full_names[file.name] = str(file)
                 item.setText(0, str(file) if show_full_names else file.name)
 
         self.__duplicates_tree_view.expandAll()
 
+    def __on_dupicates_tree_view_double_clicked(self, item: QTreeWidgetItem, column):
+        if item.childCount() == 0:
+            path = item.text(0) if self.__full_names_checkbox.isChecked() \
+                                else self.__names_and_full_names[item.text(0)]
+
+            view_window = ViewWindow(self, path)
+            view_window.show()
 
 

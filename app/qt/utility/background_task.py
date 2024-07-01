@@ -8,7 +8,7 @@ from PySide6.QtCore import Signal, QObject
 from server import InternalServerManager
 from dupes import ObservableTask
 from . import ProgressDisplayingWindow
-from .utilities import display_message
+from .message_window import MessageWindow
 
 
 class BackgroundTaskWorkerDefinition(QObject):
@@ -34,7 +34,7 @@ class BackgroundTaskWorkerDefinition(QObject):
             self.result = self.execute()
 
         except Exception as error:
-            display_message(str(error))
+            MessageWindow.display_error(str(error))
 
         self.finished.emit()
 

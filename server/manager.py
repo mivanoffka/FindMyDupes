@@ -23,7 +23,7 @@ class InternalServerManager(metaclass=Singleton):
     _MAX_IS_ALIVE_ATTEMPTS = 6
 
     def _launch_script(self):
-        self._process = subprocess.Popen([sys.executable, str(BASE_DIR / "server/script.py"), str(self._port)])
+        self._process = subprocess.Popen([sys.executable, str(BASE_DIR / "script.py"), str(self._port)])
 
     def _send_data(self, the_socket: socket.socket, raw_response: Any):
         response = pickle.dumps(raw_response)

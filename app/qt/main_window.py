@@ -2,6 +2,7 @@ import platform
 import getpass
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import *
 
 from dupes import DupeFinderByHash, DupeFinderByHashMultiThread
@@ -9,7 +10,7 @@ from dupes.exceptions import *
 from dupes.utility.image_folder import ALLOWED_FILE_FORMATS, ImageFolder
 from .duplicates_window import DuplicatesWindow
 
-from .utility import display_message, ProgressDisplayingWindow
+from .utility import ProgressDisplayingWindow, MessageWindow
 from .progress_window import ProgressWindow
 
 
@@ -17,7 +18,6 @@ class MainWindow(QMainWindow):
     __folders_paths: list[str]
     __os = platform.system()
     __username = getpass.getuser()
-    __duplicates_windows = []
 
     DEFAULT_PICTURES_PATHS = {
         "Darwin": "Users/{}/Pictures"
@@ -183,32 +183,35 @@ class MainWindow(QMainWindow):
             self.__searching_window.open()
 
         except EmptyFoldersError as error:
-            display_message("В указанных папках не удалось найти ни одного файла,"
-                                  " который бы соответствовал выбранным форматам."
-                                  " \r\n\r\nЧтобы осуществить поиск дубликатов, файлов должно быть хотя бы два.")
+            MessageWindow.display_error("В указанных папках не удалось найти ни одного файла,"
+                                              " который бы соответствовал выбранным форматам."
+                                              " \r\n\r\nЧтобы осуществить поиск дубликатов, файлов должно быть хотя бы два.")
         except NoFormatsProvided as error:
-            display_message("Пожалуйста, выберите хотя бы один тип файла.")
+            MessageWindow.display_error("Пожалуйста, выберите хотя бы один тип файла.")
 
     def __on_search_finished(self):
         result = self.__searching_window.execution_result
         if result is not None:
             if isinstance(result[0], Exception):
-                display_message(f"Не удалось выполнить поиск.\n\n{result[0]}", "Ошибка", None)
+                MessageWindow.display_error(message=f"Не удалось выполнить поиск.\n\n{result[0]}")
                 return
-
 
             count = len(result[0])
             duration = round(result[1].total_seconds(), 1)
             action_on_closed = (lambda: self.__show_duplicates_window(result[0])) if count > 0 else None
-            message = f"Найдено {count} групп(ы) дубликатов.\r\n\r\n Поиск занял {duration} c. "\
-                if len(result) > 0 else f"Дубликатов не найдено.\r\n\r\n Поиск занял {duration} c. "
+            message = f"Найдено {count} групп(ы) дубликатов.\r\nПоиск занял {duration} c. "\
+                if len(result) > 0 else f"Дубликатов не найдено.\r\nПоиск занял {duration} c. "
+
             title = "Поиск завершён!"
-            display_message(message, title, action_on_closed)
+            icon_emoji = "🕵🏻‍♀️" if count > 0 else "🤷🏻‍♀️"
+            #display_message(message, title, action_on_closed)
+            MessageWindow.display_modal(message, title, icon_emoji=icon_emoji, action_on_closed=action_on_closed)
             self.result = result[0]
 
     def __show_duplicates_window(self, duplicates_groups):
-        self.__duplicates_window = DuplicatesWindow(self, duplicates_groups)
-        self.__duplicates_window.show()
+        duplicates_window = DuplicatesWindow(self, duplicates_groups)
+        duplicates_window.show()
+        self.add_child(duplicates_window)
 
     def __get_formats_filter(self):
         formats = [key for key, value in self.__formats_check_boxes.items() if value.isChecked()]

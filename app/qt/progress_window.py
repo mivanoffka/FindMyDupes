@@ -70,8 +70,6 @@ class ProgressWindow(QDialog, ProgressDisplayingWindow):
     def display_result(self, result):
         count = result[0]
         duration = round(result[1].total_seconds() / 1000, 1)
-
-        self.__percentage_label.setText(f"Найдено {count} групп(ы) дубликатов за {duration} c.")
         self.__progress_bar.setValue(100)
 
 
