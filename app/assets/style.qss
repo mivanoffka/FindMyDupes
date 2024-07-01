@@ -31,8 +31,12 @@ QPushButton {
 }
 
 QPushButton::hover {
-    border-bottom: 1px solid #0078d7; /* Граница группы */
-    background-color: #f5f9ff;
+    background-color: #f6f6f6;
+    border: none;
+    border-bottom: 1px solid #aeaeae; /* Граница группы */
+    border-radius: 3px; /* Скругленные углы */
+    margin: 4px;
+    padding: 1px;
 }
 
 QPushButton::disabled {
@@ -41,14 +45,18 @@ QPushButton::disabled {
     border: none;
     border-bottom: 1px solid #aeaeae; /* Граница группы */
     border-radius: 3px; /* Скругленные углы */
-    margin: 3px;
+    margin: 4px;
     padding: 1px;
 
 }
 
 QPushButton::pressed {
-   background-color: #ebf2fc;
-
+    background-color: #f0f0f0;
+    border: none;
+    border-bottom: 1px solid #aeaeae; /* Граница группы */
+    border-radius: 3px; /* Скругленные углы */
+    margin: 4px;
+    padding: 1px;
 }
 
 QGroupBox {
@@ -99,3 +107,4 @@ QCheckBox::indicator:checked:hover {
     border: 1px solid #005a9e; /* Граница флажка при наведении */
     background-color: #005a9e; /* Цвет фона флажка при наведении */
 }
+
