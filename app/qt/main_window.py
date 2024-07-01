@@ -211,7 +211,6 @@ class MainWindow(QMainWindow):
     def __show_duplicates_window(self, duplicates_groups):
         duplicates_window = DuplicatesWindow(self, duplicates_groups)
         duplicates_window.show()
-        self.add_child(duplicates_window)
 
     def __get_formats_filter(self):
         formats = [key for key, value in self.__formats_check_boxes.items() if value.isChecked()]
