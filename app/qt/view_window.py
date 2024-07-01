@@ -11,7 +11,6 @@ from .utility import ProgressDisplayingWindow, MessageWindow
 class ViewWindow(QDialog):
     def __init__(self, parent, image_path: str):
         super().__init__(parent=parent)
-        parent.add_child(self)
         self.__main_widget = QWidget()
         self.__main_widget.setContentsMargins(0, 0, 0, 0)
         self.__main_layout = QVBoxLayout()
