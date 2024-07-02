@@ -1,10 +1,12 @@
 import platform
 import getpass
+from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import *
 
+from config import BASE_DIR
 from dupes import DupeFinderByHash, DupeFinderByHashMultiThread
 from dupes.exceptions import *
 from dupes.utility.image_folder import ALLOWED_FILE_FORMATS, ImageFolder
