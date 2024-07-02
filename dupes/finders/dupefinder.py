@@ -11,11 +11,6 @@ class DupeFinder(ObservableTask):
     _precision: float
 
     @property
-    @abstractmethod
-    def progress(self) -> float:
-        raise NotImplementedError
-
-    @property
     def image_folders(self) -> tuple[ImageFolder]:
         return self._image_folders
 

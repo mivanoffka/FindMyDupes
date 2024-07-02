@@ -1,24 +1,31 @@
 from pathlib import Path
+from typing import Optional
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import *
 
+from app.qt.utility.enums import MessageResult, MessageType
 from dupes import ObservableTask
+from dupes.utility import Status
+from dupes.utility.result import Result
 
 
 class MessageWindow(QDialog):
     windows_container = []
+    _message_result: Optional[MessageResult]
 
-    def __init__(self, message, title="Сообщение", icon_emoji: str = "ℹ️", action_on_closed=None):
+    @property
+    def message_result(self):
+        return self._message_result
+
+    def __init__(self, message, title="Сообщение", icon_emoji: str = "ℹ️", action_on_closed=None, message_type: MessageType = MessageType.OK):
         super().__init__()
-
-        MessageWindow.windows_container.append(self)
 
         self.__main_widget = QWidget()
         self.__main_widget.setContentsMargins(0, 0, 0, 0)
         self.__main_layout = QVBoxLayout()
-        self.__main_layout.setSpacing(12)
+        self.__main_layout.setSpacing(4)
         self.__main_widget.setLayout(self.__main_layout)
         self.setLayout(self.__main_layout)
 
@@ -35,11 +42,13 @@ class MessageWindow(QDialog):
         self.__message_label.setWordWrap(True)
         self.__icon_and_message_layout.addWidget(self.__message_label, 6)
 
-        self.__ok_button = QPushButton("OK")
-        self.__ok_button.clicked.connect(self.on_ok_button_clicked)
-        self.__main_layout.addWidget(self.__ok_button)
+        self.__buttons_layout = QHBoxLayout()
+        self.__buttons_layout.setContentsMargins(0, 0, 0, 0)
+        self.__buttons_layout.setSpacing(0)
+        self.__main_layout.addLayout(self.__buttons_layout)
+        self._init_buttons(message_type)
 
-        height_delta = 27
+        height_delta = 24
         line_len = 32
         height = height_delta * len(message) // line_len
         self.__message_label.setFixedHeight(height)
@@ -48,21 +57,77 @@ class MessageWindow(QDialog):
 
         self.finished.connect(action_on_closed)
 
+    def _init_buttons(self, message_type: MessageType):
+        match message_type:
+            case MessageType.OK:
+                self.__ok_button = QPushButton("OK")
+                self.__ok_button.clicked.connect(self.on_ok_button_clicked)
+                self.__buttons_layout.addWidget(self.__ok_button)
+            case MessageType.YesNo:
+                self.__yes_button = QPushButton("Да")
+                self.__buttons_layout.addWidget(self.__yes_button)
+                self.__yes_button.clicked.connect(self.on_yes_button_clicked)
+                self.__no_button = QPushButton("Нет")
+                self.__buttons_layout.addWidget(self.__no_button)
+                self.__no_button.clicked.connect(self.on_no_button_clicked)
+
     def on_ok_button_clicked(self):
+        self._result = MessageResult.OK
         self.close()
+
+    def on_yes_button_clicked(self):
+        print("ye")
+        self._message_result = MessageResult.YES
+        self.close()
+
+    def on_no_button_clicked(self):
+        self._message_result = MessageResult.NO
+        self.close()
+
+    @staticmethod
+    def display_execution_result(result: Result):
+        message = result.message
+        title = ""
+        icon = ""
+        match result.status:
+            case Status.SUCCESS:
+                title = "Готово"
+                icon = "✅"
+            case Status.PARTIAL:
+                title = "Внимание"
+                icon = "⚠️"
+            case Status.FAILED:
+                title = "Ошибка"
+                icon = "❌"
+
+        message_window = MessageWindow(message, title, icon)
+        MessageWindow.windows_container.append(message_window)
+        message_window.exec()
+
+        return message_window.message_result
+
+
+    @staticmethod
+    def display_confirmation(message, title="Вопрос", icon_emoji="❓", action_on_closed=None):
+        message_window = MessageWindow(message, title, icon_emoji, action_on_closed, message_type=MessageType.YesNo)
+        MessageWindow.windows_container.append(message_window)
+        message_window.exec()
+
+        return message_window.message_result
 
     @staticmethod
     def display_modal(message, title="Сообщение", icon_emoji="ℹ️", action_on_closed=None):
         message_window = MessageWindow(message, title, icon_emoji, action_on_closed)
+        MessageWindow.windows_container.append(message_window)
         message_window.exec()
 
-    @staticmethod
-    def display(message, title="Сообщение", icon_emoji="ℹ️", action_on_closed=None):
-        message_window = MessageWindow(message, title, icon_emoji, action_on_closed)
-        message_window.show()
+        return message_window
 
     @staticmethod
     def display_error(message):
         message_window = MessageWindow(message, title="Ошибка", icon_emoji="❌")
+        MessageWindow.windows_container.append(message_window)
         message_window.show()
+
+        return message_window
 

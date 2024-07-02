@@ -7,10 +7,13 @@ from PySide6.QtWidgets import *
 
 from PySide6.QtCore import QThread
 
-from .utility import ProgressDisplayingWindow
+from dupes.operations.duplicates_remover import DuplicatesRemover
+from .progress_window import ProgressWindow
+from .utility import ProgressDisplayingWindow, MessageWindow
 from dupes import ObservableTask
 
 from .utility import ObservableTaskWorker
+from .utility.enums import MessageResult
 from .view_window import ViewWindow
 
 
@@ -18,6 +21,7 @@ class DuplicatesWindow(QDialog):
     __duplicates_groups_filtered: list
     __view_windows = []
     __names_and_full_names = {}
+    __confirmation_window: MessageWindow = None
 
     def __init__(self, parent, result: list):
         super().__init__(parent=parent)
@@ -33,11 +37,6 @@ class DuplicatesWindow(QDialog):
         self.__main_layout = QVBoxLayout()
         self.__main_layout.setSpacing(8)
         self.setLayout(self.__main_layout)
-        #endregion
-
-        #region Search text box
-        self.__search_text_box = QLineEdit()
-        self.__search_text_box.setPlaceholderText("Имя файла")
         #endregion
 
         #region Duplicates group box
@@ -59,6 +58,17 @@ class DuplicatesWindow(QDialog):
         self.__full_names_checkbox.checkStateChanged.connect(self.__refresh_tree_view)
         self.__duplicates_group_box_layout.addLayout(self.__full_names_checkbox_layout)
         self.__full_names_checkbox_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        #endregion
+
+        #region Duplicates tree view configuration
+        self.__duplicates_tree_view.setColumnCount(1)
+        self.__duplicates_tree_view.setHeaderLabel("Дважды нажмите на файл, чтобы открыть его")
+        header = self.__duplicates_tree_view.header()
+        header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)  # Пример выравнивания по центру
+
+        #region Search text box
+        self.__search_text_box = QLineEdit()
+        self.__search_text_box.setPlaceholderText("Имя файла")
         #endregion
 
         #region Search group box
@@ -90,11 +100,11 @@ class DuplicatesWindow(QDialog):
         self.__search_buttons_layout.addWidget(self.__reset_button, 1)
         #endregion
 
-        #region Duplicates tree view configuration
-        self.__duplicates_tree_view.setColumnCount(1)
-        self.__duplicates_tree_view.setHeaderLabel("Дважды нажмите на файл, чтобы открыть его")
-        header = self.__duplicates_tree_view.header()
-        header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)  # Пример выравнивания по центру
+        #region Actions buttons
+        self.__remove_duplicates_button = QPushButton("Удалить дубликаты")
+        self.__remove_duplicates_button.clicked.connect(self.__on_remove_button_clicked)
+        self.__main_layout.addWidget(self.__remove_duplicates_button)
+        #endregion
 
         # Устанавливаем цвет фона и текста заголовка через стили CSS
         header.setStyleSheet("""
@@ -112,6 +122,23 @@ class DuplicatesWindow(QDialog):
         self.setWindowTitle("Результаты поиска")
         self.setFixedSize(350, 450)
         #endregion
+
+    def __on_remove_button_clicked(self):
+        message_result = MessageWindow.display_confirmation(
+            "Вы уверены, что хотите удалить все дубликаты? Останется только один экземпляр из каждой группы.",
+            title="Удаление дубликатов")
+        if message_result == MessageResult.YES:
+            task = DuplicatesRemover(self.__duplicates_groups_origin)
+            self.__searching_window = ProgressWindow(self, task)
+            self.__searching_window.finished.connect(self.__on_observable_task_finished)
+            self.__searching_window.open()
+
+    def __on_observable_task_finished(self):
+        result = self.__searching_window.execution_result
+        MessageWindow.display_execution_result(result)
+        self.__duplicates_groups_origin = result.value
+        self.__duplicates_groups_filtered = self.__duplicates_groups_filtered
+        self.__refresh_tree_view()
 
     def __on_reset_button_clicked(self):
         self.__search_text_box.setText("")
@@ -143,14 +170,15 @@ class DuplicatesWindow(QDialog):
                 file: Path = file
                 item = QTreeWidgetItem(tree_group)
                 self.__names_and_full_names[file.name] = str(file)
-                item.setText(0, str(file) if show_full_names else file.name)
+                p = str(file) if show_full_names else file.name
+                item.setText(0, f"🌇 {p}")
 
         self.__duplicates_tree_view.expandAll()
 
     def __on_dupicates_tree_view_double_clicked(self, item: QTreeWidgetItem, column):
         if item.childCount() == 0:
-            path = item.text(0) if self.__full_names_checkbox.isChecked() \
-                                else self.__names_and_full_names[item.text(0)]
+            path = item.text(0)[2:] if self.__full_names_checkbox.isChecked() \
+                                    else self.__names_and_full_names[item.text(0)[2:]]
 
             view_window = ViewWindow(self, path)
             view_window.show()

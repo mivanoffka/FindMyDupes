@@ -15,8 +15,6 @@ class DupeFinderByHash(DupeFinder):
     A DupeFinder implementation that is able to indentify duplicates by comparing images' perceptual hashes
     """
 
-    _progress_tracker: ProgressTracker
-
     _hashing_progress_delta: float
     _grouping_progress_delta: float
     _sorting_progress_delta: float
@@ -131,10 +129,6 @@ class DupeFinderByHash(DupeFinder):
         aim_value = self.hashing_component + self.grouping_component + self.sorting_component
 
         self._progress_tracker = ProgressTracker(aim_value)
-
-    @property
-    def progress(self) -> float:
-        return self._progress_tracker.percentage
 
     @property
     def threshold(self) -> int:

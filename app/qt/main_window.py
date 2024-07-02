@@ -10,7 +10,7 @@ from dupes.exceptions import *
 from dupes.utility.image_folder import ALLOWED_FILE_FORMATS, ImageFolder
 from .duplicates_window import DuplicatesWindow
 
-from .utility import ProgressDisplayingWindow, MessageWindow
+from .utility import ProgressDisplayingWindow, MessageWindow, MessageResult
 from .progress_window import ProgressWindow
 
 
@@ -159,7 +159,8 @@ class MainWindow(QMainWindow):
 
     def __on_remove_button_click(self):
         if len(self.__folders_list.selectedItems()) > 0:
-            self.__folders_paths.remove(self.__folders_list.selectedItems()[0].text())
+            path = self.__folders_list.selectedItems()[0].text()[2:]
+            self.__folders_paths.remove(path)
         self.update_folders_list()
 
     def __on_search_button_clicked(self):
@@ -191,14 +192,15 @@ class MainWindow(QMainWindow):
 
     def __on_search_finished(self):
         result = self.__searching_window.execution_result
+        duration = self.__searching_window.duration
         if result is not None:
-            if isinstance(result[0], Exception):
+            if isinstance(result, Exception):
                 MessageWindow.display_error(message=f"Не удалось выполнить поиск.\n\n{result[0]}")
                 return
 
-            count = len(result[0])
-            duration = round(result[1].total_seconds(), 1)
-            action_on_closed = (lambda: self.__show_duplicates_window(result[0])) if count > 0 else None
+            count = len(result)
+            duration = round(duration.total_seconds(), 1)
+            action_on_closed = (lambda: self.__show_duplicates_window(result)) if count > 0 else None
             message = f"Найдено {count} групп(ы) дубликатов.\r\nПоиск занял {duration} c. "\
                 if len(result) > 0 else f"Дубликатов не найдено.\r\nПоиск занял {duration} c. "
 
@@ -206,7 +208,7 @@ class MainWindow(QMainWindow):
             icon_emoji = "🕵🏻‍♀️" if count > 0 else "🤷🏻‍♀️"
             #display_message(message, title, action_on_closed)
             MessageWindow.display_modal(message, title, icon_emoji=icon_emoji, action_on_closed=action_on_closed)
-            self.result = result[0]
+            self.result = result
 
     def __show_duplicates_window(self, duplicates_groups):
         duplicates_window = DuplicatesWindow(self, duplicates_groups)
@@ -225,7 +227,8 @@ class MainWindow(QMainWindow):
 
     def update_folders_list(self):
         self.__folders_list.clear()
-        self.__folders_list.addItems(self.__folders_paths)
+        for folder_path in self.__folders_paths:
+            self.__folders_list.addItem(f"📁 {folder_path}")
         self.__on_folders_list_item_changed()
 
 

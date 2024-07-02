@@ -1,5 +1,7 @@
 from abc import abstractmethod
 from typing import Any
+from .progress_tracker import ProgressTracker
+from .result import Result
 
 
 class ObservableTask:
@@ -9,19 +11,17 @@ class ObservableTask:
     should not be an OBSERVABLE TASK.
     """
 
-    @abstractmethod
-    def execute(self) -> Any:
-        """
-        This method must be an entry point for performing the required task and must return the result of it.
-        """
-        raise NotImplementedError()
+    _progress_tracker: ProgressTracker
 
     @property
-    @abstractmethod
     def progress(self) -> float:
+        return self._progress_tracker.percentage
+
+
+    @abstractmethod
+    def execute(self) -> Result:
         """
-        Using a PROGRESS TRACKER in class implementations is strictly advised. In this case, just return
-        ProgressTracker's PROGRESS property to implement this property.
+        This method must be an entry point for performing the required task and must return the result of it.
         """
         raise NotImplementedError()
 

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Optional, Any
 
 from PySide6.QtCore import Qt
@@ -15,6 +16,11 @@ class ProgressWindow(QDialog, ProgressDisplayingWindow):
     __task: ObservableTask
     __finding_result: Optional[list] = None
     __execution_result: Any = None
+    __duration: timedelta
+
+    @property
+    def duration(self):
+        return self.__duration
 
     @property
     def execution_result(self) -> Any:
@@ -29,7 +35,8 @@ class ProgressWindow(QDialog, ProgressDisplayingWindow):
         return self.__progress_thread
 
     def on_task_finish(self, result: Any):
-        self.__execution_result = result
+        self.__execution_result = result[0]
+        self.__duration = result[1]
         self.close()
 
     def __init__(self, parent, task: ObservableTask):
@@ -68,8 +75,6 @@ class ProgressWindow(QDialog, ProgressDisplayingWindow):
         self.__progress_bar.setValue(int(percentage))
 
     def display_result(self, result):
-        count = result[0]
-        duration = round(result[1].total_seconds() / 1000, 1)
         self.__progress_bar.setValue(100)
 
 
