@@ -11,17 +11,21 @@ from . import IWidgetForShowingProgress
 from .message_window import MessageWindow
 
 
-class BackgroundTaskWorkerDefinition(QObject):
+class _BackgroundTaskWorker(QObject):
+
+    """
+    Objects of this class are only meant to be inherited by
+    InternalServerBackgroundTask so that _ProgressWorker could be included and
+    defined before InternalServerBackgroundTask.
+
+    Do not create instances of this class manually!
+    """
+
     finished: Signal = Signal()
     result = None
 
     @abstractmethod
     def execute(self):
-        raise NotImplementedError()
-
-    @property
-    @abstractmethod
-    def progress(self) -> float:
         raise NotImplementedError()
 
     @property
@@ -39,14 +43,22 @@ class BackgroundTaskWorkerDefinition(QObject):
         self.finished.emit()
 
 
-class ProgressWorker(QObject):
-    bg_worker: BackgroundTaskWorkerDefinition
+class _ProgressWorker(QObject):
+
+    """
+    Objects of this class are only meant to be included and define
+    a loop that will track and update progress indicators in a WidgetForShowingProgress
+
+    Do not create instances of this class manually!
+    """
+
+    bg_worker: _BackgroundTaskWorker
     progress = Signal(float)
     finished = Signal(object)
 
     client: socket.socket
 
-    def __init__(self, bg_worker: BackgroundTaskWorkerDefinition):
+    def __init__(self, bg_worker: _BackgroundTaskWorker):
         super().__init__()
         self.bg_worker = bg_worker
 
@@ -62,7 +74,7 @@ class ProgressWorker(QObject):
         self.finished.emit((self.bg_worker.result, self.bg_worker.duration))
 
 
-class AbstractBackgroundTask(BackgroundTaskWorkerDefinition):
+class InternalServerBackgroundTask(_BackgroundTaskWorker):
 
     """
     This class can be used to execute an ObservableTask and track its progress
@@ -73,19 +85,31 @@ class AbstractBackgroundTask(BackgroundTaskWorkerDefinition):
     You need a widget or window that follows IWidgetForShowingProgress
     to display progress tracking properly.
     """
-    
-    progress_worker: ProgressWorker
-    
-    def __init__(self, progressable: IWidgetForShowingProgress):
-        bg_task_thread = progressable.task_thread
-        progress_thread = progressable.progress_thread
-        gui_progress_updater = progressable.update_progress
-        on_finish = progressable.on_task_finish
+
+    _progress_worker: _ProgressWorker
+    _task: ObservableTask
+
+    _start_time: datetime
+    _finish_time: datetime
+
+    @property
+    def duration(self) -> timedelta:
+        return self._finish_time - self._start_time
+
+    def __init__(self, task: ObservableTask, window: IWidgetForShowingProgress):
+        super().__init__()
+        self._task = task
+        self._connect_to_widget(window)
+
+    def _connect_to_widget(self, widget: IWidgetForShowingProgress):
+        bg_task_thread = widget.task_thread
+        progress_thread = widget.progress_thread
+        gui_progress_updater = widget.update_progress
+        on_finish = widget.on_task_finish
 
         self.bg_task_thread = bg_task_thread
         self.progress_thread = progress_thread
 
-        super().__init__()
         self.moveToThread(bg_task_thread)
 
         self.finished.connect(bg_task_thread.quit)
@@ -94,51 +118,28 @@ class AbstractBackgroundTask(BackgroundTaskWorkerDefinition):
         bg_task_thread.started.connect(self.run)
         bg_task_thread.finished.connect(bg_task_thread.deleteLater)
 
-        self.progress_worker = ProgressWorker(self)
-        self.progress_worker.moveToThread(progress_thread)
+        self._progress_worker = _ProgressWorker(self)
+        self._progress_worker.moveToThread(progress_thread)
 
-        progress_thread.started.connect(self.progress_worker.run)
-        self.progress_worker.finished.connect(progress_thread.quit)
-        self.progress_worker.finished.connect(self.progress_worker.deleteLater)
+        progress_thread.started.connect(self._progress_worker.run)
+        self._progress_worker.finished.connect(progress_thread.quit)
+        self._progress_worker.finished.connect(self._progress_worker.deleteLater)
         progress_thread.finished.connect(progress_thread.deleteLater)
-        self.progress_worker.progress.connect(gui_progress_updater)
-        self.progress_worker.finished.connect(on_finish)
+        self._progress_worker.progress.connect(gui_progress_updater)
+        self._progress_worker.finished.connect(on_finish)
 
     def start(self):
         self.bg_task_thread.start()
         self.progress_thread.start()
 
-
-class InternalServerBackgroundTask(AbstractBackgroundTask):
-    
-    """
-    This class can be used to execute an ObservableTask via InternalServer and track its progress
-    without interrupting the GUI mainloop. You need a widget or window that follows IWidgetForShowingProgress
-    to display progress tracking properly.
-    """
-    
-    _start_time: datetime
-    _finish_time: datetime
-    task: ObservableTask
-
-    def __init__(self, task: ObservableTask, window: IWidgetForShowingProgress):
-        super().__init__(window)
-        self.task = task
-
-    @property
-    def progress(self):
-        return self.task.progress
-
-    @property
-    def duration(self) -> timedelta:
-        return self._finish_time - self._start_time
-
     def execute(self):
         self._start_time = datetime.now()
-        result = InternalServerManager().execute_task(self.task)
+        result = InternalServerManager().execute_task(self._task)
         self._finish_time = datetime.now()
 
         return result
+
+
 
 
 

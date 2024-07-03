@@ -1,4 +1,4 @@
 from .widget_for_showing_progress import IWidgetForShowingProgress
-from .background_task_worker import InternalServerBackgroundTask
+from .internal_server_bg_task import InternalServerBackgroundTask
 from .message_window import MessageWindow
 from .enums import MessageResult

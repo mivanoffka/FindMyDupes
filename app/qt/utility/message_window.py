@@ -12,6 +12,14 @@ from dupes.utility.task_result import ObservableTaskResult
 
 
 class MessageWindow(QDialog):
+
+    """
+    A custom MessageBox instead of qt-builtins that are pretty platform-dependent.
+
+    Instances of this class are advised to not be created manually,
+    you better create templated message-windows using the class' static methods
+    """
+
     windows_container = []
     _message_result: Optional[MessageResult] = None
 

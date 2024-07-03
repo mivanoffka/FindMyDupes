@@ -209,7 +209,7 @@ class MainWindow(QMainWindow):
             title = "Поиск завершён!"
             icon_emoji = "🕵🏻‍♀️" if count > 0 else "🤷🏻‍♀️"
             #display_message(message, title, action_on_closed)
-            MessageWindow.display_modal(message, title, icon_emoji=icon_emoji, action_on_closed=action_on_closed)
+            MessageWindow.show_informative(message, title, icon_emoji=icon_emoji, action_on_closed=action_on_closed)
             self.result = result
 
     def __show_duplicates_window(self, duplicates_groups):
