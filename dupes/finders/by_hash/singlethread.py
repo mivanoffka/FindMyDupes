@@ -11,7 +11,6 @@ from dupes.utility.progress_tracker import ProgressTracker
 
 
 class DupeFinderByHash(DupeFinder):
-
     """
     A DupeFinder implementation that is able to indentify duplicates by comparing images' perceptual hashes
     """
@@ -97,21 +96,30 @@ class DupeFinderByHash(DupeFinder):
         return groups
 
     def execute(self):
-        hashmaps = (self._get_hashmap(folder) for folder in self._image_folders)
+        try:
+            hashmaps = (self._get_hashmap(folder) for folder in self._image_folders)
 
-        hashmap_unsorted = {}
-        for hashmap in hashmaps:
-            for key in hashmap.keys():
-                hashmap_unsorted[key] = hashmap[key]
+            hashmap_unsorted = {}
+            for hashmap in hashmaps:
+                for key in hashmap.keys():
+                    hashmap_unsorted[key] = hashmap[key]
 
-        if len(hashmap_unsorted) == 0:
-            raise NoValidImagesError("No images were opened or processed correctly.")
+            if len(hashmap_unsorted) == 0:
+                raise NoValidImagesError("No images were opened or processed correctly.")
 
-        hashmap_sorted = self._sort_hashmap(hashmap_unsorted)
-        groups = self._group_paths_by_hashes(hashmap_sorted)
+            hashmap_sorted = self._sort_hashmap(hashmap_unsorted)
+            groups = self._group_paths_by_hashes(hashmap_sorted)
 
-        self._progress_tracker.finish()
-        return ObservableTaskResult(groups, ObservableTaskResultStatus.SUCCESS, self._progress_tracker.report, None)
+            self._progress_tracker.finish()
+
+            status = ObservableTaskResultStatus.SUCCESS if len(self._progress_tracker.report) == 0 \
+                else ObservableTaskResultStatus.PARTIAL
+
+            return ObservableTaskResult(groups, status, self._progress_tracker.report, None)
+
+        except Exception as error:
+            self._progress_tracker.log_to_report(str(error))
+            return ObservableTaskResult(None, ObservableTaskResultStatus.FAILED, self._progress_tracker.report, None)
 
     def _initialize_progress_units(self):
         self.hashing_component = sum(folder.files_count for folder in self._image_folders)
@@ -139,4 +147,3 @@ class DupeFinderByHash(DupeFinder):
         """
 
         return 64 - int(self._precision * 64)
-
