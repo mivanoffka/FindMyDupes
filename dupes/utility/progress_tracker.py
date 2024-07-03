@@ -39,8 +39,8 @@ class ProgressTracker:
             self.__current_value = self.__aim_value
 
     def __set_aim_value(self, aim_value: float):
-        if aim_value <= 0:
-            raise ValueError("Aim value must be greater than zero")
+        if aim_value < 0:
+            raise ValueError("Aim value must be greater or equal to zero")
 
         self.__aim_value = aim_value
 

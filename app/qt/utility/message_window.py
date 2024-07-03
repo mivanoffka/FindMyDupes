@@ -7,13 +7,13 @@ from PySide6.QtWidgets import *
 
 from app.qt.utility.enums import MessageResult, MessageType
 from dupes import ObservableTask
-from dupes.utility import Status
-from dupes.utility.result import Result
+from dupes.utility import ObservableTaskResultStatus
+from dupes.utility.task_result import ObservableTaskResult
 
 
 class MessageWindow(QDialog):
     windows_container = []
-    _message_result: Optional[MessageResult]
+    _message_result: Optional[MessageResult] = None
 
     @property
     def message_result(self):
@@ -85,18 +85,18 @@ class MessageWindow(QDialog):
         self.close()
 
     @staticmethod
-    def display_execution_result(result: Result):
+    def show_task_result(result: ObservableTaskResult):
         message = result.message
         title = ""
         icon = ""
         match result.status:
-            case Status.SUCCESS:
+            case ObservableTaskResultStatus.SUCCESS:
                 title = "Готово"
                 icon = "✅"
-            case Status.PARTIAL:
+            case ObservableTaskResultStatus.PARTIAL:
                 title = "Внимание"
                 icon = "⚠️"
-            case Status.FAILED:
+            case ObservableTaskResultStatus.FAILED:
                 title = "Ошибка"
                 icon = "❌"
 
@@ -106,9 +106,8 @@ class MessageWindow(QDialog):
 
         return message_window.message_result
 
-
     @staticmethod
-    def display_confirmation(message, title="Вопрос", icon_emoji="❓", action_on_closed=None):
+    def show_confirmation(message, title="Вопрос", icon_emoji="❓", action_on_closed=None):
         message_window = MessageWindow(message, title, icon_emoji, action_on_closed, message_type=MessageType.YesNo)
         MessageWindow.windows_container.append(message_window)
         message_window.exec()
@@ -116,7 +115,7 @@ class MessageWindow(QDialog):
         return message_window.message_result
 
     @staticmethod
-    def display_modal(message, title="Сообщение", icon_emoji="ℹ️", action_on_closed=None):
+    def show_informative(message, title="Сообщение", icon_emoji="ℹ️", action_on_closed=None):
         message_window = MessageWindow(message, title, icon_emoji, action_on_closed)
         MessageWindow.windows_container.append(message_window)
         message_window.exec()
@@ -124,7 +123,7 @@ class MessageWindow(QDialog):
         return message_window
 
     @staticmethod
-    def display_error(message):
+    def show_error(message):
         message_window = MessageWindow(message, title="Ошибка", icon_emoji="❌")
         MessageWindow.windows_container.append(message_window)
         message_window.show()

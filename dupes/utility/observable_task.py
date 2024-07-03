@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Any
 from .progress_tracker import ProgressTracker
-from .result import Result
+from .task_result import ObservableTaskResult
 
 
 class ObservableTask:
@@ -17,9 +17,8 @@ class ObservableTask:
     def progress(self) -> float:
         return self._progress_tracker.percentage
 
-
     @abstractmethod
-    def execute(self) -> Result:
+    def execute(self) -> ObservableTaskResult:
         """
         This method must be an entry point for performing the required task and must return the result of it.
         """

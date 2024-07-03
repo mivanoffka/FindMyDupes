@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Any
 
 from ..utility import ObservableTask, ProgressTracker
-from ..utility.result import Result
-from ..utility.statuses import Status
+from ..utility.task_result import ObservableTaskResult
+from ..utility.statuses import ObservableTaskResultStatus
 
 
 class DuplicatesRemover(ObservableTask):
@@ -45,11 +45,11 @@ class DuplicatesRemover(ObservableTask):
             self._progress_tracker.current_value += 1
 
         if deleted_files == 0:
-            return Result(self._duplicate_groups, Status.FAILED, self._progress_tracker.report, "Не удалось выполнить операцию.")
+            return ObservableTaskResult(self._duplicate_groups, ObservableTaskResultStatus.FAILED, self._progress_tracker.report, "Не удалось выполнить операцию.")
         elif deleted_files == len(self._files_path):
-            return Result(self._duplicate_groups, Status.SUCCESS, None, "Операция выполнена успешно.")
+            return ObservableTaskResult(self._duplicate_groups, ObservableTaskResultStatus.SUCCESS, None, "Операция выполнена успешно.")
         else:
-            return Result(self._duplicate_groups, Status.PARTIAL, self._progress_tracker, "Операция выполнена лишь частично.")
+            return ObservableTaskResult(self._duplicate_groups, ObservableTaskResultStatus.PARTIAL, self._progress_tracker, "Операция выполнена лишь частично.")
 
 
     def execute(self):

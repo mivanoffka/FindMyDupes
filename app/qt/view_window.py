@@ -5,7 +5,7 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import *
 
 from dupes import ObservableTask
-from .utility import ProgressDisplayingWindow, MessageWindow
+from .utility import IWidgetForShowingProgress, MessageWindow
 
 
 class ViewWindow(QDialog):
@@ -26,7 +26,7 @@ class ViewWindow(QDialog):
         self.__main_layout.addWidget(self.label)
 
         if pixmap.isNull():
-            MessageWindow.display_error("Не удалось открыть изображение")
+            MessageWindow.show_error("Не удалось открыть изображение")
             self.close()
 
         max_dimension = 600

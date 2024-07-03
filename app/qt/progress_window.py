@@ -6,13 +6,13 @@ from PySide6.QtWidgets import *
 
 from PySide6.QtCore import QThread
 
-from .utility import ProgressDisplayingWindow
+from .utility import IWidgetForShowingProgress
 from dupes import ObservableTask
 
-from .utility import ObservableTaskWorker
+from .utility import InternalServerBackgroundTask
 
 
-class ProgressWindow(QDialog, ProgressDisplayingWindow):
+class ProgressWindow(QDialog, IWidgetForShowingProgress):
     __task: ObservableTask
     __finding_result: Optional[list] = None
     __execution_result: Any = None
@@ -67,7 +67,7 @@ class ProgressWindow(QDialog, ProgressDisplayingWindow):
         self.__task_thread = QThread()
         self.__progress_thread = QThread()
 
-        task_worker = ObservableTaskWorker(self.__task, self)
+        task_worker = InternalServerBackgroundTask(self.__task, self)
         task_worker.start()
 
     def update_progress(self, percentage):

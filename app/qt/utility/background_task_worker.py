@@ -7,7 +7,7 @@ from PySide6.QtCore import Signal, QObject
 
 from server import InternalServerManager
 from dupes import ObservableTask
-from . import ProgressDisplayingWindow
+from . import IWidgetForShowingProgress
 from .message_window import MessageWindow
 
 
@@ -34,7 +34,7 @@ class BackgroundTaskWorkerDefinition(QObject):
             self.result = self.execute()
 
         except Exception as error:
-            MessageWindow.display_error(str(error))
+            MessageWindow.show_error(str(error))
 
         self.finished.emit()
 
@@ -62,10 +62,21 @@ class ProgressWorker(QObject):
         self.finished.emit((self.bg_worker.result, self.bg_worker.duration))
 
 
-class BackgroundTaskWorker(BackgroundTaskWorkerDefinition):
-    progress_worker: ProgressWorker
+class AbstractBackgroundTask(BackgroundTaskWorkerDefinition):
 
-    def __init__(self, progressable: ProgressDisplayingWindow):
+    """
+    This class can be used to execute an ObservableTask and track its progress
+    without interrupting the GUI mainloop, yet the way of parallel execution is not implemented.
+
+    If you want to execute your ObservableTask via InternalServer, use the InternalServerBackgroundTask
+
+    You need a widget or window that follows IWidgetForShowingProgress
+    to display progress tracking properly.
+    """
+    
+    progress_worker: ProgressWorker
+    
+    def __init__(self, progressable: IWidgetForShowingProgress):
         bg_task_thread = progressable.task_thread
         progress_thread = progressable.progress_thread
         gui_progress_updater = progressable.update_progress
@@ -98,13 +109,20 @@ class BackgroundTaskWorker(BackgroundTaskWorkerDefinition):
         self.progress_thread.start()
 
 
-class ObservableTaskWorker(BackgroundTaskWorker):
+class InternalServerBackgroundTask(AbstractBackgroundTask):
+    
+    """
+    This class can be used to execute an ObservableTask via InternalServer and track its progress
+    without interrupting the GUI mainloop. You need a widget or window that follows IWidgetForShowingProgress
+    to display progress tracking properly.
+    """
+    
     _start_time: datetime
     _finish_time: datetime
     task: ObservableTask
 
-    def __init__(self, task: ObservableTask, progressable: ProgressDisplayingWindow):
-        super().__init__(progressable)
+    def __init__(self, task: ObservableTask, window: IWidgetForShowingProgress):
+        super().__init__(window)
         self.task = task
 
     @property

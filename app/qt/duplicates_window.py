@@ -1,18 +1,12 @@
 from pathlib import Path
-from typing import Optional, Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QBrush, QColor
 from PySide6.QtWidgets import *
 
-from PySide6.QtCore import QThread
-
 from dupes.operations.duplicates_remover import DuplicatesRemover
 from .progress_window import ProgressWindow
-from .utility import ProgressDisplayingWindow, MessageWindow
-from dupes import ObservableTask
-
-from .utility import ObservableTaskWorker
+from .utility import MessageWindow
 from .utility.enums import MessageResult
 from .view_window import ViewWindow
 
@@ -124,7 +118,7 @@ class DuplicatesWindow(QDialog):
         #endregion
 
     def __on_remove_button_clicked(self):
-        message_result = MessageWindow.display_confirmation(
+        message_result = MessageWindow.show_confirmation(
             "Вы уверены, что хотите удалить все дубликаты? Останется только один экземпляр из каждой группы.",
             title="Удаление дубликатов")
         if message_result == MessageResult.YES:
@@ -135,9 +129,8 @@ class DuplicatesWindow(QDialog):
 
     def __on_observable_task_finished(self):
         result = self.__searching_window.execution_result
-        MessageWindow.display_execution_result(result)
+        MessageWindow.show_task_result(result)
         self.__duplicates_groups_origin = result.value
-        self.__duplicates_groups_filtered = self.__duplicates_groups_filtered
         self.__refresh_tree_view()
 
     def __on_reset_button_clicked(self):

@@ -6,6 +6,7 @@ from imagehash import ImageHash, phash
 
 from dupes.exceptions import *
 from dupes.finders.dupefinder import DupeFinder
+from dupes.utility import ObservableTaskResult, ObservableTaskResultStatus
 from dupes.utility.progress_tracker import ProgressTracker
 
 
@@ -110,8 +111,7 @@ class DupeFinderByHash(DupeFinder):
         groups = self._group_paths_by_hashes(hashmap_sorted)
 
         self._progress_tracker.finish()
-
-        return groups
+        return ObservableTaskResult(groups, ObservableTaskResultStatus.SUCCESS, self._progress_tracker.report, None)
 
     def _initialize_progress_units(self):
         self.hashing_component = sum(folder.files_count for folder in self._image_folders)

@@ -1,10 +1,10 @@
 from typing import Any, Optional
-from .statuses import Status
+from .statuses import ObservableTaskResultStatus
 
 
-class Result:
+class ObservableTaskResult:
     _value: Any
-    _status: Status
+    _status: ObservableTaskResultStatus
     _logs: Optional[tuple]
     _message: str
 
@@ -13,7 +13,7 @@ class Result:
         return self._value
 
     @property
-    def status(self) -> Status:
+    def status(self) -> ObservableTaskResultStatus:
         return self._status
 
     @property

@@ -12,7 +12,7 @@ from dupes.exceptions import *
 from dupes.utility.image_folder import ALLOWED_FILE_FORMATS, ImageFolder
 from .duplicates_window import DuplicatesWindow
 
-from .utility import ProgressDisplayingWindow, MessageWindow, MessageResult
+from .utility import IWidgetForShowingProgress, MessageWindow, MessageResult
 from .progress_window import ProgressWindow
 
 
@@ -186,18 +186,18 @@ class MainWindow(QMainWindow):
             self.__searching_window.open()
 
         except EmptyFoldersError as error:
-            MessageWindow.display_error("В указанных папках не удалось найти ни одного файла,"
+            MessageWindow.show_error("В указанных папках не удалось найти ни одного файла,"
                                               " который бы соответствовал выбранным форматам."
                                               " \r\n\r\nЧтобы осуществить поиск дубликатов, файлов должно быть хотя бы два.")
         except NoFormatsProvided as error:
-            MessageWindow.display_error("Пожалуйста, выберите хотя бы один тип файла.")
+            MessageWindow.show_error("Пожалуйста, выберите хотя бы один тип файла.")
 
     def __on_search_finished(self):
-        result = self.__searching_window.execution_result
+        result = self.__searching_window.execution_result.value
         duration = self.__searching_window.duration
         if result is not None:
             if isinstance(result, Exception):
-                MessageWindow.display_error(message=f"Не удалось выполнить поиск.\n\n{result[0]}")
+                MessageWindow.show_error(message=f"Не удалось выполнить поиск.\n\n{result[0]}")
                 return
 
             count = len(result)

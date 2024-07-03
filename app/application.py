@@ -62,7 +62,7 @@ class Application:
                 raise ServerNotStartedError("No information can be provided here. Go to server logs.")
         except Exception as error:
             logging.error("Failed to start internal server: " + str(error))
-            MessageWindow.display_error("Приложение не удалось запустить"
+            MessageWindow.show_error("Приложение не удалось запустить"
                                         " из-за проблемы с запуском внутреннего сервера.", )
             self.finish()
             return
@@ -73,7 +73,7 @@ class Application:
             self.__main_window.show()
             self.__app.exec()
         except Exception as error:
-            MessageWindow.display_error("Произошла критическая ошибка!", )
+            MessageWindow.show_error("Произошла критическая ошибка!", )
 
         self.finish()
 
